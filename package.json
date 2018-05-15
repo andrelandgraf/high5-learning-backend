@@ -1,10 +1,19 @@
 {
   "name": "high5-learning-backend",
   "version": "1.0.0",
-  "description": "This is the backend repository (npm project) for high-five-learning. Hight-five-learning is a elearning platform created by TUM students for the course Software Engineering für betriebliche Anwendungen – Masterkurs: Web Application Engineering (IN2087)\u001b[D\u001b[D\u001b[A\u001b[A\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[\u001b[3~\u001b[C\u001b\u001b[C\u001b\u001b[C\u001b-\u001b[3~\u001b[B\u001b[C\u001b[B\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C. ",
+  "description": "This is the backend repository (npm project) for high-five-learning. Hight-five-learning is a elearning platform created by TUM students for the course Software Engineering für betriebliche Anwendungen – Masterkurs: Web Application Engineering (IN2087). ",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrelandgraf/high5-learning-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sebischair/sebamaster-movie-backend/issues"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./server.js",
+    "devstart": "nodemon ./server.js"
   },
   "keywords": [
     "elearning",
@@ -13,10 +22,14 @@
     "node"
   ],
   "author": "Andre Landgraf, Hermann Grübel, Andre Weinkötz, Martin Lindemann",
-  "license": "ISC",
+  "license": "MIT",
+  "homepage": "https://github.com/andrelandgraf/high5-learning-backend.git#readme",
   "dependencies": {
     "express": "^4.16.3",
     "mongoose": "^5.1.1",
     "nodemon": "^1.17.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.11.1"
   }
 }
