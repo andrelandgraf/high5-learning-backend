@@ -1,0 +1,22 @@
+{
+  "name": "high5-learning-backend",
+  "version": "1.0.0",
+  "description": "This is the backend repository (npm project) for high-five-learning. Hight-five-learning is a elearning platform created by TUM students for the course Software Engineering für betriebliche Anwendungen – Masterkurs: Web Application Engineering (IN2087)\u001b[D\u001b[D\u001b[A\u001b[A\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[\u001b[3~\u001b[C\u001b\u001b[C\u001b\u001b[C\u001b-\u001b[3~\u001b[B\u001b[C\u001b[B\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C\u001b[C. ",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "elearning",
+    "backend",
+    "nodejs",
+    "node"
+  ],
+  "author": "Andre Landgraf, Hermann Grübel, Andre Weinkötz, Martin Lindemann",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3",
+    "mongoose": "^5.1.1",
+    "nodemon": "^1.17.4"
+  }
+}
