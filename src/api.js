@@ -8,6 +8,7 @@ const middlewares = require('./middleware');
 
 const auth  = require('./routes/auth');
 const movie = require('./routes/teacher');
+const homework = require('./routes/homework');
 
 const api = express();
 
@@ -26,9 +27,10 @@ api.get('/', (req, res) => {
     });
 });
 
-// API routes
+// API routes, adding the router to the middleware handling path
 api.use('/auth'  , auth);
 api.use('/teacher', teacher);
+api.use('/homework', homework);
 
 
 
