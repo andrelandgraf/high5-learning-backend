@@ -8,6 +8,7 @@ const Schema = mongoose.Schema;
 // classes is an array of foreign keys to the schema class
 // if user is a teacher: classes are the classes the teacher created  -> can access, edit the class
 // if user is a student: classes are the classes the student has signed up for -> can access the class
+// TODO why is password unquie, aka. we might neeed unique at username && also dropDups = true at username
 const UserSchema  = new Schema({
     username: {
         type: String,
@@ -21,6 +22,7 @@ const UserSchema  = new Schema({
     },
     type: {
         type: String,
+        required: true,
         enum: ['Teacher', 'Student'],
         default: 'Student'
     },
