@@ -32,7 +32,6 @@ const login = (req,res) => {
             });
 
             res.status(200).json({token: token});
-
         })
         .catch(error => res.status(404).json({
             error: 'User Not Found',

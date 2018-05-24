@@ -1,0 +1,1 @@
+// hab das File erstellt, damit in api.js keine Warnung mehr auftritt bzgl. const homework = require('./routes/homework');

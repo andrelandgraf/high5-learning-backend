@@ -1,13 +1,18 @@
 "use strict";
 
+/**
+ * require (import)
+ * if webstorm marks require as unresolved,
+ * check webstorm: settings/languages frameworks/nodejs and npm
+ * and activate coding assistance for node.js
+ */
 const express    = require('express');
 const bodyParser = require('body-parser');
 const helmet     = require('helmet');
 
-const middlewares = require('./middleware');
+const middleware = require('./middleware');
 
 const auth  = require('./routes/auth');
-const movie = require('./routes/teacher');
 const homework = require('./routes/homework');
 
 const api = express();
@@ -17,9 +22,13 @@ const api = express();
 api.use(helmet());
 api.use(bodyParser.json());
 api.use(bodyParser.urlencoded({ extended: false }));
-api.use(middlewares.allowCrossDomain);
+api.use(middleware.allowCrossDomain);
 
-
+/**
+ * express get
+ * package.json devDependency @types/express to
+ * introduce those functions to webstorm
+ */
 // Basic route
 api.get('/', (req, res) => {
     res.json({
@@ -29,8 +38,8 @@ api.get('/', (req, res) => {
 
 // API routes, adding the router to the middleware handling path
 api.use('/auth'  , auth);
-api.use('/teacher', teacher);
-api.use('/homework', homework);
+//TODO auskommentiert, damit Server läuft
+//api.use('/homework', homework);
 
 
 
