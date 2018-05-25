@@ -13,6 +13,7 @@ const helmet     = require('helmet');
 const middleware = require('./middleware');
 
 const auth  = require('./routes/auth');
+const classes = require('./routes/classes');
 const homework = require('./routes/homework');
 
 const api = express();
@@ -38,6 +39,7 @@ api.get('/', (req, res) => {
 
 // API routes, adding the router to the middleware handling path
 api.use('/auth'  , auth);
+api.use('/classes', classes)
 //TODO auskommentiert, damit Server läuft
 //api.use('/homework', homework);
 
