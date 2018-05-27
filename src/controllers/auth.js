@@ -1,22 +1,22 @@
 "use strict";
 
-const jwt        = require('jsonwebtoken');
-const bcrypt     = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
-const config     = require('../config');
-const UserModel  = require('../models/user');
+const config = require('../config');
+const UserModel = require('../models/user');
 const SchoolModel = require('../models/school');
 
 
 // if user is found and password is valid
 // create a token with the username and the user type (e.g. student or teacher)
-function createToken(user){
-    return jwt.sign({ id: user._id, username: user.username, type: user.type}, config.JwtSecret, {
+function createToken(user) {
+    return jwt.sign({id: user._id, username: user.username, type: user.type}, config.JwtSecret, {
         expiresIn: 86400 // expires in 24 hours
     });
 }
 
-const login = (req,res) => {
+const login = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
         error: 'Bad Request',
         message: 'The request body must contain a password property'
@@ -32,7 +32,7 @@ const login = (req,res) => {
 
             // check if the password is valid
             const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
-            if (!isPasswordValid) return res.status(401).send({token: null });
+            if (!isPasswordValid) return res.status(401).send({token: null});
 
             // if user is found and password is valid
             const token = createToken(user);
@@ -56,7 +56,7 @@ const login = (req,res) => {
  * @param res
  * @returns {*}
  */
-const register = (req,res) => {
+const register = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
         error: 'Bad Request',
         message: 'The request body must contain a password property'
@@ -73,7 +73,8 @@ const register = (req,res) => {
     });
 
     // check if user is teacher
-    if (req.body.type === 'Teacher'){
+    if (req.body.type === 'Teacher') {
+        // insert teacher
         // now we have to check the licence code
         if (!Object.prototype.hasOwnProperty.call(req.body, 'license')) return res.status(400).json({
             error: 'Bad Request',
@@ -96,8 +97,8 @@ const register = (req,res) => {
 
                         // add user to the teachers array of the school
                         school.teachers.push(user._id);
-                        school.save(function(err, doc, numbersAffected) {
-                            if(err){
+                        school.save(function (err, doc, numbersAffected) {
+                            if (err) {
                                 res.status(500).json({
                                     error: 'Internal server error',
                                     message: error.message
@@ -111,13 +112,13 @@ const register = (req,res) => {
                         });
                     })
                     .catch(error => {
-                        if(error.code == 11000) {
+                        if (error.code === 11000) {
                             res.status(400).json({
                                 error: 'User exists',
                                 message: error.message
                             })
                         }
-                        else{
+                        else {
                             res.status(500).json({
                                 error: 'Internal server error',
                                 message: error.message
@@ -129,6 +130,31 @@ const register = (req,res) => {
                 error: 'Internal Server Error',
                 message: error.message
             }));
+    } else {
+        // insert user
+        const user = Object.assign(req.body, {password: bcrypt.hashSync(req.body.password, 8)});
+
+        UserModel.create(user)
+            .then(user => {
+                // if user is found and password is valid
+                const token = createToken(user);
+
+                res.status(200).json({token: token});
+            })
+            .catch(error => {
+                if (error.code === 11000) {
+                    res.status(400).json({
+                        error: 'User exists',
+                        message: error.message
+                    })
+                }
+                else {
+                    res.status(500).json({
+                        error: 'Internal server error',
+                        message: error.message
+                    })
+                }
+            });
     }
 };
 
@@ -151,7 +177,7 @@ const me = (req, res) => {
 };
 
 const logout = (req, res) => {
-    res.status(200).send({ token: null });
+    res.status(200).send({token: null});
 };
 
 module.exports = {
