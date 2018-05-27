@@ -16,14 +16,26 @@ const ExerciseSchema = new mongoose.Schema({
     }
 })
 
+//homework Schema with title of homework, corresponding exercises and assignedClass
 const HomeworkSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
     },
     exercises: {
-        type: [ExerciseSchema],
+        question: {
+            type: String,
+            required: true
+        },
+        answers: {
+            type: [String],
+            required: true
+        },
         required: true
+    },
+    assignedClass: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Class'
     }
 },{ collection: 'homework' });
 
