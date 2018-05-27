@@ -20,7 +20,7 @@ const SchoolSchema  = new Schema({
     teachers: [
         { type: Schema.Types.ObjectId, ref: 'User'}
     ]
-});
+},{ collection: 'school' });
 
 // Export the UserSchema model under the name User
 module.exports = mongoose.model('School', SchoolSchema);

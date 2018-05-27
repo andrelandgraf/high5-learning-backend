@@ -45,6 +45,26 @@ const list = (req, res) => {
 
 };
 
+const create = (req,res) => {
+
+    console.log(req.body);
+
+    const addClass = Object.assign(req.body, {password: "veryveryverysecret"});
+
+    ClassModel.create(addClass).then((myClass) =>
+    {
+        console.log(myClass);
+        res.status(200).json(myClass);
+    });
+}
+
+const find = (req,res) => {
+    ClassModel.findOne({_id: req.body.id}).exec()
+        .then(myClass => myClass);
+}
+
 module.exports = {
-    list
+    list,
+    create,
+    find
 };

@@ -25,7 +25,7 @@ const HomeworkSchema = new mongoose.Schema({
         type: [ExerciseSchema],
         required: true
     }
-});
+},{ collection: 'homework' });
 
 //Setting configurable options to HomeworkSchema
 HomeworkSchema.set('timestamps', true);

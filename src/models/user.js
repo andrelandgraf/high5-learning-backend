@@ -29,7 +29,7 @@ const UserSchema  = new Schema({
     classes: [
         { type: Schema.Types.ObjectId, ref: 'Class'}
     ]
-});
+}, { collection: 'user' });
 
 UserSchema.set('versionKey', false);
 

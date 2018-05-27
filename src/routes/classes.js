@@ -9,5 +9,8 @@ const ClassController = require('../controllers/class');
 
 
 router.get('/', ClassController.list);
+router.get('/:id', ClassController.find);
+router.post('/',ClassController.create);
+
 
 module.exports = router;

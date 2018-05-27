@@ -21,6 +21,6 @@ const ClassSchema  = new Schema({
     homework: [
         { type: Schema.Types.ObjectId, ref: 'Homework'}
     ]
-});
+}, { collection: 'class' });
 
 module.exports = mongoose.model('Class', ClassSchema);
