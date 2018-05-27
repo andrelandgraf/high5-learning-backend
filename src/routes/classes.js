@@ -9,7 +9,7 @@ const ClassController = require('../controllers/class');
 
 
 router.get('/', ClassController.list);
-router.get('/:id', ClassController.find);
+router.get('/:id', ClassController.findSingleClass);
 router.post('/',ClassController.create);
 
 

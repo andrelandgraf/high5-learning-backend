@@ -49,12 +49,10 @@ const create = (req,res) => {
 
     console.log(req.body);
 
-    const addClass = Object.assign(req.body, {password: "veryveryverysecret"});
-
-    ClassModel.create(addClass).then((myClass) =>
+    HomeworkModel.create(req.body).then((myHomework) =>
     {
-        console.log(myClass);
-        res.status(200).json(myClass);
+        console.log(myHomework);
+        res.status(200).json(myHomework);
     });
 }
 
@@ -64,7 +62,7 @@ const find = (req,res) => {
 }
 
 module.exports = {
-    list,
-    create,
-    find
+    //list,
+    create
+    //find
 };

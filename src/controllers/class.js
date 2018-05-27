@@ -5,51 +5,26 @@ const bcrypt     = require('bcryptjs');
 
 const config     = require('../config');
 const ClassModel  = require('../models/class');
+const HomeworkModel = require('../models/homework');
 
 
 
 const list = (req, res) => {
 
-    const classes = [
-        {
-            id: 127,
-            title: "Math",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/127",
-            password: "very very secret password"
-        },
-        {
-            id: 128,
-            title: "Biology",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/128",
-            password: "very very secret password"
-        },
-        {
-            id: 129,
-            title: "Chemistry",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/129",
-            password: "very very secret password"
-        },
-        {
-            id: 130,
-            title: "Physics",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/130",
-            password: "very very secret password"
-        }
-    ];
-
-    res.status(200).json(classes);
+    ClassModel.find().exec()
+        .then(classes => {
+            res.status(200).json(classes);
+        }).catch((error) => {
+            res.status(500).json(error);
+    });
 
 };
 
 const create = (req,res) => {
 
-    console.log(req.body);
+    const passwd = req.body.title + 2018;
 
-    const addClass = Object.assign(req.body, {password: "veryveryverysecret"});
+    const addClass = Object.assign(req.body, {password: passwd});
 
     ClassModel.create(addClass).then((myClass) =>
     {
@@ -63,8 +38,19 @@ const find = (req,res) => {
         .then(myClass => myClass);
 }
 
+const findSingleClass = (req, res) => {
+    const classId = req.body.id;
+    HomeworkModel.find().where('_id').equals(classId).exec().then(
+        (homeworkList) => {
+            res.status(200).json(homeworkList);
+        }
+    );
+
+}
+
 module.exports = {
     list,
     create,
-    find
+    find,
+    findSingleClass
 };
