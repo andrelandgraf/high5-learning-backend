@@ -39,7 +39,7 @@ const list = (req, res) => {
             URL: "www.high5learning.com/classes/130",
             password: "very very secret password"
         }
-    ]
+    ];
 
     res.status(200).json(classes);
 

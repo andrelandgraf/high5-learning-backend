@@ -39,9 +39,8 @@ api.get('/', (req, res) => {
 
 // API routes, adding the router to the middleware handling path
 api.use('/auth'  , auth);
-api.use('/classes', classes)
-//TODO auskommentiert, damit Server läuft
-//api.use('/homework', homework);
+api.use('/classes', classes);
+api.use('/homework', homework);
 
 
 
