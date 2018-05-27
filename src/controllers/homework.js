@@ -45,7 +45,7 @@ const list = (req, res) => {
 
 };
 
-const create = (req,res) => {
+/*const create = (req,res) => {
 
     console.log(req.body);
 
@@ -54,15 +54,15 @@ const create = (req,res) => {
         console.log(myHomework);
         res.status(200).json(myHomework);
     });
-}
+}*/
 
 const find = (req,res) => {
-    ClassModel.findOne({_id: req.body.id}).exec()
-        .then(myClass => myClass);
+    HomeworkModel.findOne({_id: req.body.id}).exec()
+        .then(myHomework => myHomework);
 }
 
 module.exports = {
     //list,
-    create
-    //find
+    //create
+    find
 };
