@@ -4,17 +4,6 @@ const mongoose = require('mongoose');
 
 //definition of the homework schema
 
-//ExerciseSchema is a subdocument for the HomeworkSchema
-const ExerciseSchema = new mongoose.Schema({
-    question: {
-        type: String,
-        required: true
-    },
-    answers: {
-        type: [String],
-        required: true
-    }
-})
 
 //homework Schema with title of homework, corresponding exercises and assignedClass
 const HomeworkSchema = new mongoose.Schema({
@@ -29,6 +18,10 @@ const HomeworkSchema = new mongoose.Schema({
         },
         answers: {
             type: [String],
+            required: true
+        },
+        rightSolution: {
+            type: Number,
             required: true
         },
 
