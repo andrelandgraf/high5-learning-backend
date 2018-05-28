@@ -20,10 +20,17 @@ const allowCrossDomain = (req, res, next) => {
 };
 
 const checkAuthentication = (req, res, next) => {
+    // if header auth is empty, no token
+    if(req.headers === undefined || req.headers['authorization'] === undefined ){
+        return res.status(401).send({
+            error: 'Unauthorized',
+            message: 'No token provided in the request'
+        });
+    }
 
     // check header or url parameters or post parameters for token
-    //const token = req.headers['x-access-token'];
     const token = req.headers['authorization'].substring(4);
+
 
     if (!token)
         return res.status(401).send({
