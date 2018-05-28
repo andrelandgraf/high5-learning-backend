@@ -1,11 +1,11 @@
 "use strict";
 
-const jwt        = require('jsonwebtoken');
-const bcrypt     = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
-const config     = require('../config');
-const HomeworkModel  = require('../models/homework');
-
+const config = require('../config');
+const HomeworkModel = require('../models/homework');
+const ClassModel = require('../models/class');
 
 
 const list = (req, res) => {
@@ -45,27 +45,35 @@ const list = (req, res) => {
 
 };
 
-/*const create = (req,res) => {
+const create = (req, res) => {
 
-    console.log(req.body);
+    let classId = req.body.classId;
 
-    HomeworkModel.create(req.body).then((myHomework) =>
-    {
-        console.log(myHomework);
-        res.status(200).json(myHomework);
+    delete req.body.classId;
+    
+    HomeworkModel.create(req.body).exec().then((myHomework) => {
+        ClassModel.findById(classId).exec().then((myClass) => {
+
+            myClass.homework.push(myHomework);
+            res.status(200).json(myHomework);
+        })
+
     });
-}*/
+};
 
-const find = (req,res) => {
-    console.log(req.params.id);
+const find = (req, res) => {
+
     HomeworkModel.findById(req.params.id).exec()
         .then(myHomework => {
-            console.log(myHomework);
-            res.status(200).json(myHomework)});
-}
+            if(!myHomework){
+                myHomework = [];
+            }
+            res.status(200).json(myHomework)
+        });
+};
 
 module.exports = {
     //list,
-    //create
+    create,
     find
 };
