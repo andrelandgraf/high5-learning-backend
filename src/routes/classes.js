@@ -1,16 +1,15 @@
 "use strict";
 
-const express        = require('express');
-const router         = express.Router();
+const express = require('express');
+const router = express.Router();
 
-const middleware    = require('../middleware');
-const AuthController = require('../controllers/auth');
+const middleware = require('../middleware');
 const ClassController = require('../controllers/class');
 
 
-router.get('/', ClassController.list);
+router.get('/', middleware.checkAuthentication ,ClassController.find);
 router.get('/:id', ClassController.findSingleClass);
-router.post('/',ClassController.create);
+router.post('/', middleware.checkAuthentication, ClassController.create);
 
 
 module.exports = router;
