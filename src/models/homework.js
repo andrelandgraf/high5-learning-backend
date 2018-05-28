@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 //definition of the homework schema
 
+
 //homework Schema with title of homework, corresponding exercises and assignedClass
 const HomeworkSchema = new mongoose.Schema({
     title: {
@@ -17,6 +18,10 @@ const HomeworkSchema = new mongoose.Schema({
         },
         answers: {
             type: [String],
+            required: true
+        },
+        rightSolution: {
+            type: Number,
             required: true
         },
 

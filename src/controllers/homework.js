@@ -57,8 +57,11 @@ const list = (req, res) => {
 }*/
 
 const find = (req,res) => {
-    HomeworkModel.findOne({_id: req.body.id}).exec()
-        .then(myHomework => myHomework);
+    console.log(req.params.id);
+    HomeworkModel.findById(req.params.id).exec()
+        .then(myHomework => {
+            console.log(myHomework);
+            res.status(200).json(myHomework)});
 }
 
 module.exports = {

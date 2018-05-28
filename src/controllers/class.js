@@ -47,8 +47,9 @@ const find = (req, res) => {
 }
 
 const findSingleClass = (req, res) => {
+    console.log(req.body);
     const classId = req.body.id;
-    HomeworkModel.find().where('_id').equals(classId).exec().then(
+    HomeworkModel.find({id: classId}).then(
         (homeworkList) => {
             res.status(200).json(homeworkList);
         }
