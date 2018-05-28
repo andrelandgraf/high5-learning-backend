@@ -14,6 +14,7 @@ const HomeworkController = require('../controllers/homework');
 //router.post('/',HomeworkController.create);
 
 //id is id of homework, gives all exercises of this home + homework meta data
-router.get('/:id', HomeworkController.find)
+router.get('/:id', HomeworkController.find);
+router.post('/', HomeworkController.create);
 
 module.exports = router;
