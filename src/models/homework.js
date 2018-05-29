@@ -12,10 +12,6 @@ const HomeworkSchema = new mongoose.Schema({
         required: true
     },
     exercises: [{
-        id: {
-            type: String,
-            required: true
-        },
         question: {
             type: String,
             required: true
@@ -25,14 +21,14 @@ const HomeworkSchema = new mongoose.Schema({
             required: true
         },
         rightSolution: {
-            type: String,
+            type: Number,
             required: true
         },
 
     }],
     assignedClass: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Class'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class'
     }
 },{ collection: 'homework' });
 
