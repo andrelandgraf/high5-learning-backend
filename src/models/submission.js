@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 //submission Schema with an array of indexes of the picked answer of each exercise of an homework and the assigned Homework
 const SubmissionSchema = new mongoose.Schema({
     exercises:  {
-        type: [Number],
+        type: [String],
         enum: [0, 1, 2, 3],
         required: true
     },

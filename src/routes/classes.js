@@ -6,9 +6,8 @@ const router = express.Router();
 const middleware = require('../middleware');
 const ClassController = require('../controllers/class');
 
-
-router.get('/', middleware.checkAuthentication ,ClassController.find);
-router.get('/:id', ClassController.findSingleClass);
+//find all submission for :id == homework._id
+router.get('/:id', middleware.checkAuthentication ,ClassController.find);
 router.post('/', middleware.checkAuthentication, ClassController.create);
 
 

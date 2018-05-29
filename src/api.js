@@ -15,6 +15,7 @@ const middleware = require('./middleware');
 const auth  = require('./routes/auth');
 const classes = require('./routes/classes');
 const homework = require('./routes/homework');
+const submission = require('./routes/submission');
 
 const api = express();
 
@@ -41,6 +42,7 @@ api.get('/', (req, res) => {
 api.use('/auth'  , auth);
 api.use('/classes', classes);
 api.use('/homework', homework);
+api.use('/submission', submission);
 
 
 
