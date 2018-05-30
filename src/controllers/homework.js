@@ -47,37 +47,21 @@ const list = (req, res) => {
 
 const create = (req, res) => {
 
-    let classId = req.body.classId;
+    let classId = req.params.id;
 
-    delete req.body.classId;
-
-    HomeworkModel.create(req.body).exec().then((myHomework) => {
+    HomeworkModel.create(req.body).then((myHomework) => {
         ClassModel.findById(classId).exec().then((myClass) => {
 
             myClass.homework.push(myHomework);
+            myClass.save();
             res.status(200).json(myHomework);
         })
 
     });
 };
 
-const find = (req, res) => {
-    if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
-        return res.status(400).json({
-            error: 'Bad Request',
-            message: 'The request body must contain a id property for the homework'
-        });
-    HomeworkModel.findById(req.params.id).exec()
-        .then(myHomework => {
-            if (!myHomework) {
-                myHomework = [];
-            }
-            res.status(200).json(myHomework)
-        });
-};
+
 
 module.exports = {
-    //list,
-    create,
-    find
+    create
 };

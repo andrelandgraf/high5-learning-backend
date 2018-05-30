@@ -47,15 +47,42 @@ const find = (req, res) => {
 };
 
 const findSingleClass = (req, res) => {
-    console.log(req.body);
-    const classId = req.body.id;
-    HomeworkModel.find({id: classId}).then(
-        (homeworkList) => {
-            res.status(200).json(homeworkList);
+    const classId = req.params.id;
+    ClassModel.findById(classId).populate('homework').exec()
+        .then((singleClass) => {
+            console.log(singleClass);
+            if(singleClass) {
+                res.status(200).json(singleClass);
+            } else {
+                res.status(200).json([]);
+            }
         }
     );
 
 };
+
+/*const getHomeworkOfClass = (req, res) => {
+
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a id property for the homework'
+        });
+
+
+    ClassModel.findById(req.params.id).exec().then((myClass) => {
+
+        const allHomework = [...myClass.homework];
+
+        HomeworkModel.find().exec().then(homework => {
+            const allHw= homework.filter((hw) => {
+                return allHomework.includes(hw._id);
+            });
+            res.status(200).json(allHw);
+        })
+
+    });
+};*/
 
 module.exports = {
     list,
