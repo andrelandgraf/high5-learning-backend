@@ -9,5 +9,6 @@ const SubmissionController = require('../controllers/submission');
 
 //finds all submission by homework ID
 router.get('/:id', SubmissionController.findByHomework);
+router.post('/', SubmissionController.create);
 
 module.exports = router;

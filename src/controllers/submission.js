@@ -9,18 +9,33 @@ const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
 
 const findByHomework = (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a id property for the homework'
+    });
     const homeworkId = req.params.id;
     SubmissionModel.find({homework: homeworkId})
-        .then(homework => {
-            res.status(200).json(homework);
+        .then(submission => {
+            res.status(200).json(submission);
         }).catch((error) => {
         res.status(500).json(error);
     });
 };
 
-
-
+const create = (req, res) => {
+    const addSubmission = req.body;
+    SubmissionModel.create(addSubmission)
+        .then((submission) => {
+            res.status(200).json(submission);
+        }).catch(error => {
+        res.status(500).json({
+            error: 'Internal server error',
+            message: error.message
+        })
+    });
+};
 
 module.exports = {
-    findByHomework
-}
+    findByHomework,
+    create
+};

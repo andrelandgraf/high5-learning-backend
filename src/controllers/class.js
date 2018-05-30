@@ -30,11 +30,11 @@ const create = (req, res) => {
         UserModel.findById(req.userId).exec().then(user => {
             user.classes.push(myClass._id);
             user.save();
-        })
+        });
 
         res.status(200).json(myClass);
     });
-}
+};
 
 const find = (req, res) => {
 
@@ -44,7 +44,7 @@ const find = (req, res) => {
 
     }).catch(error => console.log("Error in ClassController (find): " + error));
 
-}
+};
 
 const findSingleClass = (req, res) => {
     console.log(req.body);
@@ -55,7 +55,7 @@ const findSingleClass = (req, res) => {
         }
     );
 
-}
+};
 
 module.exports = {
     list,
