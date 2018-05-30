@@ -50,7 +50,7 @@ const create = (req, res) => {
     let classId = req.body.classId;
 
     delete req.body.classId;
-    
+
     HomeworkModel.create(req.body).exec().then((myHomework) => {
         ClassModel.findById(classId).exec().then((myClass) => {
 
@@ -62,10 +62,14 @@ const create = (req, res) => {
 };
 
 const find = (req, res) => {
-
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a id property for the homework'
+        });
     HomeworkModel.findById(req.params.id).exec()
         .then(myHomework => {
-            if(!myHomework){
+            if (!myHomework) {
                 myHomework = [];
             }
             res.status(200).json(myHomework)

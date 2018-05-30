@@ -9,10 +9,11 @@ const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
 
 const findByHomework = (req, res) => {
-    if (!Object.prototype.hasOwnProperty.call(req.params, 'id')) return res.status(400).json({
-        error: 'Bad Request',
-        message: 'The request body must contain a id property for the homework'
-    });
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a id property for the homework'
+        });
     const homeworkId = req.params.id;
     SubmissionModel.find({homework: homeworkId})
         .then(submission => {
@@ -22,6 +23,7 @@ const findByHomework = (req, res) => {
     });
 };
 
+// body has to contain array of exercises, id student and id of the homework
 const create = (req, res) => {
     const addSubmission = req.body;
     SubmissionModel.create(addSubmission)
