@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const config = require('../config');
 const UserModel = require('../models/user');
 const SchoolModel = require('../models/school');
+const ClassModel = require('../models/class');
 
 
 // if user is found and password is valid
@@ -57,29 +58,33 @@ const login = (req, res) => {
  * @returns {*}
  */
 const register = (req, res) => {
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
-        error: 'Bad Request',
-        message: 'The request body must contain a password property'
-    });
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'password'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a password property'
+        });
 
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'username')) return res.status(400).json({
-        error: 'Bad Request',
-        message: 'The request body must contain a username property'
-    });
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'username'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a username property'
+        });
 
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'type')) return res.status(400).json({
-        error: 'Bad Request',
-        message: 'The request body must contain a type property'
-    });
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'type'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a type property'
+        });
 
     // check if user is teacher
     if (req.body.type === 'Teacher') {
         // insert teacher
         // now we have to check the licence code
-        if (!Object.prototype.hasOwnProperty.call(req.body, 'license')) return res.status(400).json({
-            error: 'Bad Request',
-            message: 'The request body must contain a license property'
-        });
+        if (!Object.prototype.hasOwnProperty.call(req.body, 'license'))
+            return res.status(400).json({
+                error: 'Bad Request',
+                message: 'The request body must contain a license property'
+            });
 
         SchoolModel.findOne({license: req.body.license}).exec()
             .then(school => {
@@ -160,7 +165,7 @@ const register = (req, res) => {
 
 
 const me = (req, res) => {
-    UserModel.findById(req.userId).select('username').exec()
+    UserModel.findById(req.body.userId).select('username').exec()
         .then(user => {
 
             if (!user) return res.status(404).json({
@@ -180,9 +185,135 @@ const logout = (req, res) => {
     res.status(200).send({token: null});
 };
 
+const listMembership = (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a class id property'
+        });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'user'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a user id property'
+        });
+
+    const userId = req.body.user;
+    const classId = req.params.id;
+
+    UserModel.findById(userId).select('username', 'classes').exec()
+        .then(user => {
+
+            if (!user) return res.status(404).json({
+                error: 'Not Found',
+                message: `User not found`
+            });
+
+            let isClassOfUser = Object.keys(user.classes).forEach(function (key) {
+                if (user.classes[key] === classId) {
+                    return true;
+                }
+            });
+
+            if (isClassOfUser) {
+                res.status(200).json(
+                    {
+                        user: user.username,
+                        classes: user.classes
+                    }
+                );
+            } else {
+                res.status(200).json(
+                    {
+                        user: user.username,
+                        classes: -1
+                    }
+                );
+            }
+        })
+        .catch(error => res.status(500).json({
+            error: 'Internal Server Error',
+            message: error.message
+        }));
+};
+
+const createMembership = (req, rep) => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'classId'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a class id property'
+        });
+
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'The request body must contain a user id property'
+        });
+
+    const userId = req.body.user;
+    const classId = req.body.class;
+
+    UserModel.findById(userId).select('username', 'classes').exec()
+        .then(user => {
+
+            if (!user) return res.status(404).json({
+                error: 'Not Found',
+                message: `User not found`
+            });
+
+            SchoolModel.findById(classId).exec()
+                .then(myClass => {
+                    if (!myClass)
+                        return res.status(404).json({
+                            error: 'Not Found',
+                            message: `Class not found`
+                        });
+                    let isClassOfUser = Object.keys(user.classes).forEach(function (key) {
+                        if (user.classes[key] === classId) {
+                            return true;
+                        }
+                    });
+                    if (isClassOfUser) {
+                        res.status(200).json(
+                            {
+                                user: user.username,
+                                classes: user.classes
+                            }
+                        );
+                    } else {
+                        // add class to the classes array of the user
+                        user.classes.push(myClass._id);
+                        user.save(function (err, doc, numbersAffected) {
+                            if (err) {
+                                res.status(500).json({
+                                    error: 'Internal server error',
+                                    message: error.message
+                                })
+                            }
+
+                            res.status(200).json({
+                                user: user.username,
+                                classes: user.classes
+                            });
+                        });
+                    }
+                })
+                .catch(error => res.status(500).json({
+                    error: 'Internal Server Error',
+                    message: error.message
+                }));
+        })
+        .catch(error => res.status(500).json({
+            error: 'Internal Server Error',
+            message: error.message
+        }));
+};
+
 module.exports = {
     login,
     register,
     logout,
-    me
+    me,
+    listMembership,
+    createMembership
 };

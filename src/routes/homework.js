@@ -7,12 +7,7 @@ const middleware    = require('../middleware');
 const AuthController = require('../controllers/auth');
 const HomeworkController = require('../controllers/homework');
 
-//get homework by class
-//router.get('/:id', HomeworkController.find);
-
-//create homework inside class
-//router.post('/',HomeworkController.create);
-
+//TODO add authentification for production
 //id is id of homework, gives all exercises of this home + homework meta data
 router.get('/:id', HomeworkController.find);
 router.post('/', HomeworkController.create);
