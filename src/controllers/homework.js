@@ -7,44 +7,6 @@ const config = require('../config');
 const HomeworkModel = require('../models/homework');
 const ClassModel = require('../models/class');
 
-
-const list = (req, res) => {
-
-    const sampleHomework = [
-        {
-            id: 127,
-            title: "Math",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/127",
-            password: "very very secret password"
-        },
-        {
-            id: 128,
-            title: "Biology",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/128",
-            password: "very very secret password"
-        },
-        {
-            id: 129,
-            title: "Chemistry",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/129",
-            password: "very very secret password"
-        },
-        {
-            id: 130,
-            title: "Physics",
-            description: "Veeeeeery long description of the specific contents of this class.",
-            URL: "www.high5learning.com/classes/130",
-            password: "very very secret password"
-        }
-    ];
-
-    res.status(200).json(sampleHomework);
-
-};
-
 const create = (req, res) => {
 
     let classId = req.params.id;
@@ -60,8 +22,21 @@ const create = (req, res) => {
     });
 };
 
+const getHomeworkDetail = (req, res) => {
+
+    let homeworkId = req.params.id;
+
+    HomeworkModel.findById(homeworkId).exec().then((myHomework) => {
+        res.status(200).json(myHomework);
+    }).catch(error => {
+        console.log(error);
+        res.status(404).json({error: "Object not found"});
+    })
+
+};
 
 
 module.exports = {
-    create
+    create,
+    getHomeworkDetail
 };

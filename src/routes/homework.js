@@ -9,6 +9,7 @@ const HomeworkController = require('../controllers/homework');
 
 //TODO add authentification for production
 //id is id of homework, gives all exercises of this home + homework meta data
+router.get('/:id', HomeworkController.getHomeworkDetail);
 router.post('/:id', HomeworkController.create);
 
 module.exports = router;
