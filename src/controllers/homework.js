@@ -9,6 +9,11 @@ const ClassModel = require('../models/class');
 
 const create = (req, res) => {
 
+    if(req.userType !== "Teacher") return res.status(403).json({
+        error: "Access denied",
+        message: "You have to be a teacher in order to create new homework."
+    });
+
     let classId = req.params.id;
 
     HomeworkModel.create(req.body).then((myHomework) => {
