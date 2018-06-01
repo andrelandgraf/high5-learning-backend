@@ -37,12 +37,11 @@ const create = (req, res) => {
     });
 };
 
-//TODO filter after populate
+
 const findSubmissionOfUserByHomework = (req, res) => {
     const userId = req.user_id;
     const homeworkId = req.params.id;
-    SubmissionModel.find({homework: homeworkId})
-        .populate('student', '_id')
+    SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
         .then(submission => {
             res.status(200).json(submission);
