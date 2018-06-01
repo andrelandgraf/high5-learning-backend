@@ -37,7 +37,26 @@ const create = (req, res) => {
     });
 };
 
+//TODO filter after populate
+const findSubmissionOfUserByHomework = (req, res) => {
+    const userId = req.user_id;
+    const homeworkId = req.params.id;
+    SubmissionModel.find({homework: homeworkId})
+        .populate('student', '_id')
+        .exec()
+        .then(submission => {
+            res.status(200).json(submission);
+        })
+        .catch(error => {
+            res.status(500).json(error);
+        })
+}
+
+
+
+
 module.exports = {
     findByHomework,
-    create
+    create,
+    findSubmissionOfUserByHomework
 };
