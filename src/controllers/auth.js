@@ -209,15 +209,12 @@ const listMembership = (req, res) => {
                 message: `User not found`
             });
 
-            let isClassOfUser = Object.keys(user.classes).forEach(function (key) {
-                if (user.classes[key] === classId) {
-                    return true;
+            let isClassOfUser = false;
+            user.classes.forEach(function(c) {
+                if (String(c) === classId) {
+                    isClassOfUser = true;
                 }
-            });
-
-            if (isClassOfUser !== true) {
-                isClassOfUser = false;
-            }
+            })
 
             if (isClassOfUser === true) {
                 res.status(200).json(
@@ -241,14 +238,14 @@ const listMembership = (req, res) => {
         }));
 };
 
-const createMembership = (req, rep) => {
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'classId'))
+const createMembership = (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'class'))
         return res.status(400).json({
             error: 'Bad Request',
             message: 'The request body must contain a class id property'
         });
 
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'user'))
         return res.status(400).json({
             error: 'Bad Request',
             message: 'The request body must contain a user id property'
@@ -257,7 +254,7 @@ const createMembership = (req, rep) => {
     const userId = req.body.user;
     const classId = req.body.class;
 
-    UserModel.findById(userId).select('username', 'classes').exec()
+    UserModel.findById(userId).select('username classes').exec()
         .then(user => {
 
             if (!user) return res.status(404).json({
@@ -265,18 +262,21 @@ const createMembership = (req, rep) => {
                 message: `User not found`
             });
 
-            SchoolModel.findById(classId).exec()
+            ClassModel.findById(classId).exec()
                 .then(myClass => {
                     if (!myClass)
                         return res.status(404).json({
                             error: 'Not Found',
                             message: `Class not found`
                         });
-                    let isClassOfUser = Object.keys(user.classes).forEach(function (key) {
-                        if (user.classes[key] === classId) {
-                            return true;
+
+                    let isClassOfUser = false;
+                    user.classes.forEach(function(c) {
+                        if (String(c) === classId) {
+                            isClassOfUser = true;
                         }
-                    });
+                    })
+
                     if (isClassOfUser) {
                         res.status(200).json(
                             {
