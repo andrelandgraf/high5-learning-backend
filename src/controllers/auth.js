@@ -192,16 +192,16 @@ const listMembership = (req, res) => {
             message: 'The request body must contain a class id property'
         });
 
-    if (!Object.prototype.hasOwnProperty.call(req.body, 'user'))
+    if (!Object.prototype.hasOwnProperty.call(req, 'userId'))
         return res.status(400).json({
             error: 'Bad Request',
             message: 'The request body must contain a user id property'
         });
 
-    const userId = req.body.user;
+    const userId = req.userId;
     const classId = req.params.id;
 
-    UserModel.findById(userId).select('username', 'classes').exec()
+    UserModel.findById(userId).select('username classes').exec()
         .then(user => {
 
             if (!user) return res.status(404).json({
@@ -215,7 +215,11 @@ const listMembership = (req, res) => {
                 }
             });
 
-            if (isClassOfUser) {
+            if (isClassOfUser !== true) {
+                isClassOfUser = false;
+            }
+
+            if (isClassOfUser === true) {
                 res.status(200).json(
                     {
                         user: user.username,

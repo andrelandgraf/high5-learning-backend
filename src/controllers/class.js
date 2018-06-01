@@ -57,8 +57,22 @@ const findSingleClass = (req, res) => {
 
 };
 
+const getInfoSingleClass = (req, res) => {
+    const classId = req.params.id;
+    ClassModel.findById(classId).exec().then((singleClass) => {
+                if (singleClass) {
+                    res.status(200).json(singleClass);
+                } else {
+                    res.status(200).json([]);
+                }
+            }
+        );
+
+};
+
 module.exports = {
     create,
     find,
-    findSingleClass
+    findSingleClass,
+    getInfoSingleClass
 };
