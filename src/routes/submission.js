@@ -11,7 +11,7 @@ const SubmissionController = require('../controllers/submission');
 router.get('/:id', SubmissionController.findByHomework);
 
 //find submissions of one user for one homework, params :id is the id of homework, user id is delivered by aut
-router.get('/user/:id/', SubmissionController.findSubmissionOfUserByHomework);
-router.post('/', SubmissionController.create);
+router.get('/user/:id/',middleware.checkAuthentication, SubmissionController.findSubmissionOfStudentByHomework);
+router.post('/',middleware.checkAuthentication, SubmissionController.create);
 
 module.exports = router;

@@ -38,12 +38,17 @@ const create = (req, res) => {
 };
 
 
-const findSubmissionOfUserByHomework = (req, res) => {
-    const userId = req.user_id;
+const findSubmissionOfStudentByHomework = (req, res) => {
+    const userId = req.userId;
     const homeworkId = req.params.id;
     SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
         .then(submission => {
+            if (submission.length === 0) return res.status(404).json({
+                error: 'Not Found',
+                message: `No submission found`
+            });
+
             res.status(200).json(submission);
         })
         .catch(error => {
@@ -52,10 +57,8 @@ const findSubmissionOfUserByHomework = (req, res) => {
 }
 
 
-
-
 module.exports = {
     findByHomework,
     create,
-    findSubmissionOfUserByHomework
+    findSubmissionOfStudentByHomework
 };
