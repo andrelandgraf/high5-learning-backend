@@ -275,7 +275,7 @@ const createMembership = (req, res) => {
                         if (String(c) === classId) {
                             isClassOfUser = true;
                         }
-                    })
+                    });
 
                     if (isClassOfUser) {
                         res.status(200).json(

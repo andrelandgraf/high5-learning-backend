@@ -64,42 +64,6 @@ function mapReduceStatistic(req, res, homework) {
     });
 }
 
-// See: http://mongoosejs.com/docs/api.html#mongoose_Mongoose-Model
-function mapReduceMembership() {
-    let mapReduceObject = {};
-    mapReduceObject.map = function () {
-        // each submission contains the exercises array which stores the picked answer for each exercise of the student
-        this.exercises.forEach(function (pickedAnswer, i) {
-            // key is index of the exercise in exercise array
-            // value is map of:
-            emit(i, pickedAnswer);
-        });
-    };
-    mapReduceObject.reduce = function (keyExerciseIndex, mapArray) {
-        let pickedAnswers = [];
-        pickedAnswers[0] = 0;
-        pickedAnswers[1] = 0;
-        pickedAnswers[2] = 0;
-        pickedAnswers[3] = 0;
-        mapArray.forEach(function (pickedAnswer, i) {
-            pickedAnswers["" + pickedAnswer]++;
-        });
-        return {pickedAnswers};
-    };
-    mapReduceObject.query = {
-        homework: homework._id
-    };
-    mapReduceObject.finalize = function (keyExerciseIndex, reducedValue) {
-        return reducedValue.value;
-    };
-    SubmissionModel.mapReduce(mapReduceObject, function (err, statistics) {
-        if (err) {
-            res.status(500).json(err);
-        }
-        extendMapReduce(req, res, statistics, homework)
-    });
-}
-
 function extendMapReduce(req, res, statistics, homework) {
     SubmissionModel.find({homework: homework._id}).exec()
         .then((submission) => {
@@ -125,7 +89,15 @@ function extendMapReduce(req, res, statistics, homework) {
                 };
             });
             map.exerciseStatistics = exerciseStatistics;
-            res.status(200).json(map);
+
+            UserModel.count({class : homework.assignedClass, type: "Student"}).exec().then((studentCount) => {
+                map.studentCount = studentCount;
+                map.submissionRate = map.count / studentCount;
+                res.status(200).json(map);
+            }).catch(error => {
+                console.log(error);
+                res.status(404).json({error: "Object not found"});
+            });
         })
         .catch(error => {
             console.log(error);
