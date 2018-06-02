@@ -32,7 +32,8 @@ const HomeworkSchema = new mongoose.Schema({
     }],
     assignedClass: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Class'
+        ref: 'Class',
+        required: true
     }
 },{ collection: 'homework' });
 
