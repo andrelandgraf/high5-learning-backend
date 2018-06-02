@@ -39,7 +39,7 @@ const create = (req, res) => {
 
 
 const findSubmissionOfUserByHomework = (req, res) => {
-    const userId = req.user_id;
+    const userId = req.userId;
     const homeworkId = req.params.id;
     SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
