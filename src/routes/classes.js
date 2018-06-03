@@ -10,6 +10,9 @@ router.get('/', middleware.checkAuthentication ,ClassController.find);
 router.get('/details/:id', middleware.checkAuthentication, ClassController.getInfoSingleClass);
 router.get('/:id', middleware.checkAuthentication, ClassController.findSingleClass);
 router.post('/', middleware.checkAuthentication, ClassController.create);
+router.put('/:id', middleware.checkAuthentication, ClassController.update);
+router.delete('/:id', middleware.checkAuthentication, ClassController.remove);
+
 
 
 module.exports = router;

@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 
 const UserModel = require('../models/user');
 const ClassModel = require('../models/class');
+const HomeworkModel = require('../models/homework');
+const SubmissionModel = require('../models/submission');
 
 const create = (req, res) => {
 
@@ -28,6 +30,61 @@ const create = (req, res) => {
 
         res.status(200).json(myClass);
     });
+};
+
+const update = (req, res) => {
+
+    if (req.userType !== "Teacher") {
+        return res.status(403).json({
+            error: "Access Denied",
+            message: "You are not allowed to update a class."
+        });
+    }
+    const passwd = req.body.title + 2018;
+
+    ClassModel.findById(req.params.id).then((myClass) => {
+            myClass.title = req.body.title;
+            myClass.description = req.body.description;
+            myClass.password = passwd;
+            myClass.save();
+
+            res.status(200).json(myClass); // not quite sure about this, what should we give to the response beside the status code?
+        });
+
+};
+
+const remove = (req, res) => {
+
+    if (req.userType !== "Teacher") {
+        return res.status(403).json({
+            error: "Access Denied",
+            message: "You are not allowed to remove a class."
+        });
+    }
+
+    const classObjectId = req.params.id;
+
+    ClassModel.findById(req.params.id).then((myClass) => {
+
+        HomeworkModel.find({assignedClass: myClass}).then((homework) => {
+            SubmissionModel.find({homework: homework}).then((submission) => {
+                //submission.remove();
+            })
+            //homework.remove();
+        });
+        UserModel.find(true).populate('classes').then(user => {
+            let classes = user.classes.forEach(function(c) {
+                if ()
+            })
+        })
+
+        //console.log(myClass);
+      // myClass.homework.remove();
+        //    homework.remove();
+        //myClass.remove();
+        });
+
+
 };
 
 const find = (req, res) => {
@@ -76,5 +133,7 @@ module.exports = {
     create,
     find,
     findSingleClass,
-    getInfoSingleClass
+    getInfoSingleClass,
+    update,
+    remove
 };
