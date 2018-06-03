@@ -37,8 +37,10 @@ const find = (req, res) => {
         res.status(200).json(user.classes);
 
     }).catch(error => {
-        console.log("Error in ClassController (find): " + error);
-        res.status(404).json({error: "User not found"});
+        res.status(404).json({
+            error: "User not found",
+            message: "The user could not be found, so no classes can be displayed."
+        });
     });
 
 };

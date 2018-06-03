@@ -39,9 +39,9 @@ const login = (req, res) => {
             const token = createToken(user);
             res.status(200).json({token: token});
         })
-        .catch(error => res.status(404).json({
+        .catch(() => res.status(404).json({
             error: 'User Not Found',
-            message: error.message
+            message: 'The user was not found.'
         }));
 
 };
@@ -214,7 +214,7 @@ const listMembership = (req, res) => {
                 if (String(c) === classId) {
                     isClassOfUser = true;
                 }
-            })
+            });
 
             if (isClassOfUser === true) {
                 res.status(200).json(

@@ -71,7 +71,7 @@ function extendMapReduce(req, res, statistics, homework) {
             map.count = submission.length;
             map.submissions = submission;
             map.homework = homework;
-            if(map.count === 0) res.status(200).json(map);
+            if (map.count === 0) res.status(200).json(map);
             const exerciseStatistics = statistics.results;
             exerciseStatistics.forEach(function (submittedExercise, i) {
                 exerciseStatistics["" + i] = {
@@ -90,7 +90,7 @@ function extendMapReduce(req, res, statistics, homework) {
             });
             map.exerciseStatistics = exerciseStatistics;
 
-            UserModel.count({class : homework.assignedClass, type: "Student"}).exec().then((studentCount) => {
+            UserModel.count({class: homework.assignedClass, type: "Student"}).exec().then((studentCount) => {
                 map.studentCount = studentCount;
                 map.submissionRate = map.count / studentCount;
                 res.status(200).json(map);
@@ -126,18 +126,12 @@ const findSubmissionOfUserByHomework = (req, res) => {
     SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
         .then(submission => {
-            if (submission.length === 0) return res.status(404).json({
-                error: 'Not Found',
-                message: `No submission found`
-            });
-
             res.status(200).json(submission);
         })
         .catch(error => {
             res.status(500).json(error);
         })
 };
-
 
 module.exports = {
     getStatisticsForHomework,
