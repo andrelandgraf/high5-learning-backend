@@ -65,21 +65,23 @@ const remove = (req, res) => {
 
     const classObjectId = req.params.id;
 
+    let updatedClasses = [];
+
     ClassModel.findById(req.params.id).then((myClass) => {
 
         HomeworkModel.find({assignedClass: myClass}).then((homework) => {
-            SubmissionModel.remove({homework: homework});
+            SubmissionModel.remove({homework: homework}).then();
         });
-        HomeworkModel.remove({assignedClass: myClass});
-        UserModel.find().populate('classes').then(users => {
+        HomeworkModel.remove({assignedClass: myClass}).then();
+        UserModel.find().populate('classes').exec().then(users => {
                 users.forEach(function(user) {
                     user.classes.forEach(function (c) {
                         if (String(c._id) === req.params.id) {
-                            UserModel.findOneAndUpdate({_id: user}, {$pull: {classes: c}}, {new: true}).then((n) => {
-                                console.log(String(n._id));
-                                console.log(req.userId);
-                                if(String(n._id) === req) {
-
+                            UserModel.findOneAndUpdate({_id: user}, {$pull: {classes: c}}, {new: true}).populate('classes').exec().then((n) => {
+                                if(String(n._id) === req.userId) {
+                                    ClassModel.remove({_id: myClass}).then(() => {
+                                        res.status(200).json(n.classes);
+                                    });
                                 }
                             });
                         };
