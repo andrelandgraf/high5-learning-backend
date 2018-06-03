@@ -42,7 +42,7 @@ const update = (req, res) => {
     }
     const passwd = req.body.title + 2018;
 
-    ClassModel.findById(req.params.id).exec().then((myClass) => {
+    ClassModel.findById(req.params.id).then((myClass) => {
         ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, password: passwd}}, {new: true}).then((updatedClass) => {
             res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
         });
@@ -68,22 +68,25 @@ const remove = (req, res) => {
     ClassModel.findById(req.params.id).then((myClass) => {
 
         HomeworkModel.find({assignedClass: myClass}).then((homework) => {
-            SubmissionModel.find({homework: homework}).then((submission) => {
-                //submission.remove();
-            })
-            //homework.remove();
+            SubmissionModel.remove({homework: homework});
         });
-        UserModel.find(true).populate('classes').then(user => {
-            let classes = user.classes.forEach(function(c) {
+        HomeworkModel.remove({assignedClass: myClass});
+        UserModel.find().populate('classes').then(users => {
+                users.forEach(function(user) {
+                    user.classes.forEach(function (c) {
+                        if (String(c._id) === req.params.id) {
+                            UserModel.findOneAndUpdate({_id: user}, {$pull: {classes: c}}, {new: true}).then((n) => {
+                                console.log(String(n._id));
+                                console.log(req.userId);
+                                if(String(n._id) === req) {
 
-            })
-        })
-
-        //console.log(myClass);
-      // myClass.homework.remove();
-        //    homework.remove();
-        //myClass.remove();
+                                }
+                            });
+                        };
+                    });
+            });
         });
+    });
 
 
 };
