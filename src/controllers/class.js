@@ -135,11 +135,24 @@ const getInfoSingleClass = (req, res) => {
 
 };
 
+const getStudentsOfClass = (req, res) => {
+    const classId = req.params.id;
+    console.log(classId);
+    UserModel.find({classes: classId, type: "Student"}).exec().then((listOfStudents) => {
+        res.status(200).json(listOfStudents);
+    })
+        .catch(error => {
+            console.log(error);
+            res.status(404).json({error: "Object not found"});
+        })
+}
+
 module.exports = {
     create,
     find,
     findSingleClass,
     getInfoSingleClass,
     update,
-    remove
+    remove,
+    getStudentsOfClass
 };
