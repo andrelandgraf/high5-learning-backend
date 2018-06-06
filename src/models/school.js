@@ -17,7 +17,7 @@ const SchoolSchema  = new Schema({
         required: true,
         unique: true
     },
-    teachers: [
+    users: [
         { type: Schema.Types.ObjectId, ref: 'User'}
     ]
 },{ collection: 'school' });

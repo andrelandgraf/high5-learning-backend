@@ -16,6 +16,7 @@ const auth  = require('./routes/auth');
 const classes = require('./routes/classes');
 const homework = require('./routes/homework');
 const submission = require('./routes/submission');
+const school = require('./routes/school');
 
 const api = express();
 
@@ -43,6 +44,7 @@ api.use('/auth'  , auth);
 api.use('/classes', classes);
 api.use('/homework', homework);
 api.use('/submission', submission);
+api.use('/school', school);
 
 
 

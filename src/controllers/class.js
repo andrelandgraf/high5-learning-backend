@@ -18,14 +18,19 @@ const create = (req, res) => {
     }
 
 
-    const passwd = req.body.title + 2018;
-
-    const addClass = Object.assign(req.body, {password: passwd});
+    const addClass = Object.assign(req.body);
 
     ClassModel.create(addClass).then((myClass) => {
         UserModel.findById(req.userId).exec().then(user => {
             user.classes.push(myClass._id);
             user.save();
+        });
+
+        myClass.students.map(student => {
+            UserModel.findById(student).then(user => {
+                user.classes.push(myClass._id);
+                user.save();
+            })
         });
 
         res.status(200).json(myClass);
@@ -63,14 +68,12 @@ function getHomework(myClass) {
     return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => {
         return {myClass: myClass, homework: homework};
     });
-};
-
+}
 function removeSubmission(classAndHomework) {
     return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then(() => {
         return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
     });
-};
-
+}
 function removeHomework(classAndHomework) {
     return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then(() => {
         return classAndHomework.myClass;
@@ -171,7 +174,7 @@ const getStudentsOfClass = (req, res) => {
             console.log(error);
             res.status(404).json({error: "Object not found"});
         })
-}
+};
 
 module.exports = {
     create,

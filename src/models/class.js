@@ -14,10 +14,9 @@ const ClassSchema  = new Schema({
     description: {
         type: String
     },
-    password: {
-        type: String,
-        required: true
-    },
+    students: [
+        { type: Schema.Types.ObjectId, ref: 'User'}
+    ],
     homework: [
         { type: Schema.Types.ObjectId, ref: 'Homework'}
     ]
