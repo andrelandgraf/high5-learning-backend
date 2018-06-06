@@ -54,6 +54,46 @@ const update = (req, res) => {
     });
 };
 
+function getHomework(myClass) {
+    return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => {
+        return {myClass: myClass, homework: homework};
+    });
+};
+
+function removeSubmission(classAndHomework) {
+    return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then(() => {
+        return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
+    });
+};
+
+function removeHomework(classAndHomework) {
+    return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then(() => {
+        return classAndHomework.myClass;
+    })
+}
+
+function getAllUsers(myClass) {
+    return UserModel.find({classes: myClass}).exec().then((users) => {
+        return {myClass: myClass, users: users};
+    });
+}
+
+function deleteClassOfUsers(myClassAndUsers) {
+    return UserModel.updateMany({_id: {$in: myClassAndUsers.users}}, {$pull: {classes: myClassAndUsers.myClass._id}}, {new: true}).exec().then(() => {
+        return myClassAndUsers.myClass;
+    });
+}
+
+function deleteClass(myClass) {
+    return ClassModel.remove({_id: myClass}).exec();
+}
+
+function getUpdatedClass(req, res) {
+    return UserModel.findOne({_id: req.userId}).populate('classes').exec().then((user) => {
+        res.status(200).json(user.classes);
+    })
+}
+
 const remove = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -63,33 +103,14 @@ const remove = (req, res) => {
         });
     }
 
-    const classObjectId = req.params.id;
-
-    let updatedClasses = [];
-
-    ClassModel.findById(req.params.id).then((myClass) => {
-
-        HomeworkModel.find({assignedClass: myClass}).then((homework) => {
-            SubmissionModel.remove({homework: homework}).then();
-        });
-        HomeworkModel.remove({assignedClass: myClass}).then();
-        UserModel.find().populate('classes').exec().then(users => {
-                users.forEach(function(user) {
-                    user.classes.forEach(function (c) {
-                        if (String(c._id) === req.params.id) {
-                            UserModel.findOneAndUpdate({_id: user}, {$pull: {classes: c}}, {new: true}).populate('classes').exec().then((n) => {
-                                if(String(n._id) === req.userId) {
-                                    ClassModel.remove({_id: myClass}).then(() => {
-                                        res.status(200).json(n.classes);
-                                    });
-                                }
-                            });
-                        };
-                    });
-            });
-        });
-    });
-
+    ClassModel.findById(req.params.id)
+        .then((myClass) => getHomework(myClass))
+        .then((classAndHomework) => removeSubmission(classAndHomework))
+        .then((classAndHomework) => removeHomework(classAndHomework))
+        .then((myClass) => getAllUsers(myClass))
+        .then((myClassAndUsers) => deleteClassOfUsers(myClassAndUsers))
+        .then((myClass) => deleteClass(myClass))
+        .then(() => getUpdatedClass(req, res));
 
 };
 
