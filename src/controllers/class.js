@@ -32,6 +32,13 @@ const create = (req, res) => {
     });
 };
 
+function updateClass(myClass, req, res, passwd) {
+    return ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, password: passwd}}, {new: true}).then((updatedClass) => {
+        res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
+
+    });
+}
+
 const update = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -42,16 +49,14 @@ const update = (req, res) => {
     }
     const passwd = req.body.title + 2018;
 
-    ClassModel.findById(req.params.id).then((myClass) => {
-        ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, password: passwd}}, {new: true}).then((updatedClass) => {
-            res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
+    ClassModel.findById(req.params.id)
+        .then((myClass) => updateClass(myClass, req, res, passwd))
+        .catch(error => {
+            res.status(404).json({
+                error: "Class not found",
+                message: "The class could not be found!"
+            });
         });
-    }).catch(error => {
-        res.status(404).json({
-            error: "Class not found",
-            message: "The class could not be found!"
-        });
-    });
 };
 
 function getHomework(myClass) {
