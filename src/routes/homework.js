@@ -11,5 +11,6 @@ const HomeworkController = require('../controllers/homework');
 router.get('/:id', middleware.checkAuthentication, HomeworkController.getHomeworkDetail);
 router.post('/:id', middleware.checkAuthentication, HomeworkController.create);
 router.delete('/:id', middleware.checkAuthentication, HomeworkController.remove);
+router.put('/visibility/:id', middleware.checkAuthentication, HomeworkController.changeVisibility);
 
 module.exports = router;

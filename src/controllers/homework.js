@@ -65,11 +65,22 @@ const remove = (req, res) => {
         .then((homework) => removeHomeworkFromClass(homework))
         .then((homeworkAndUpdatedClass) => removeHomework(homeworkAndUpdatedClass, res));
 
+};
+
+function changeVisibile(homework, statusToChange) {
+    return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: statusToChange}}).exec();
+}
+
+const changeVisibility = (req, res) => {
+    console.log(req);
+    HomeworkModel.findById(req.params.id)
+        .then((homework) => changeVisibile(homework, req.body.desiredVisibilityStatus))
 }
 
 
 module.exports = {
     create,
     getHomeworkDetail,
-    remove
+    remove,
+    changeVisibility
 };
