@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const config = require('../config');
 const HomeworkModel = require('../models/homework');
 const ClassModel = require('../models/class');
+const SubmissionModel = require('../models/submission');
 
 const create = (req, res) => {
 
@@ -40,8 +41,35 @@ const getHomeworkDetail = (req, res) => {
 
 };
 
+function removeSubmissions(homework) {
+    return SubmissionModel.remove({homework: homework}).exec().then(() => {
+        return homework;
+    });
+};
+
+function removeHomeworkFromClass(homework) {
+    return ClassModel.findOneAndUpdate({homework: homework}, {$pull: {homework: homework._id}}, {new: true}).populate('homework').exec().then((updatedClass) => {
+        return {updatedClass: updatedClass, homework: homework};
+    });
+};
+
+function removeHomework(homeworkAndUpdatedClass, res) {
+    return HomeworkModel.remove({_id: homeworkAndUpdatedClass.homework}).exec().then(() => {
+        res.status(200).json(homeworkAndUpdatedClass.updatedClass);
+    })
+};
+
+const remove = (req, res) => {
+    HomeworkModel.findById(req.params.id)
+        .then((homework) => removeSubmissions(homework))
+        .then((homework) => removeHomeworkFromClass(homework))
+        .then((homeworkAndUpdatedClass) => removeHomework(homeworkAndUpdatedClass, res));
+
+}
+
 
 module.exports = {
     create,
-    getHomeworkDetail
+    getHomeworkDetail,
+    remove
 };
