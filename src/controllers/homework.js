@@ -67,14 +67,22 @@ const remove = (req, res) => {
 
 };
 
-function changeVisibile(homework, statusToChange) {
-    return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: statusToChange}}).exec();
+function changeVisible(homework, statusToChange) {
+    return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: statusToChange}}).exec().then(() => {
+        return homework;
+    })
+}
+
+function returnAllHomeworksOfClass(homework, res) {
+    return ClassModel.findOne({homework: homework}).populate('homework').exec().then((classes) => {
+        res.status(200).json(classes);
+    })
 }
 
 const changeVisibility = (req, res) => {
-    console.log(req);
     HomeworkModel.findById(req.params.id)
-        .then((homework) => changeVisibile(homework, req.body.desiredVisibilityStatus))
+        .then((homework) => changeVisible(homework, req.body.desiredVisibilityStatus))
+        .then((homework) => returnAllHomeworksOfClass(homework, res))
 }
 
 
