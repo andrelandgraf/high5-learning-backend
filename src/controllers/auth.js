@@ -41,16 +41,17 @@ const login = (req, res) => {
             if (!isPasswordValid) return res.status(401).send({token: null});
 
             currentUser = user;
-            return SchoolModel.findOne({users: user._id})
+            return SchoolModel.find({users: user._id})
         })
         .then(school => {
+            console.log(school);
             let schoolname;
             if (!school) {
                 schoolname = "no school";
             }
             schoolname = school.name;
             // if user is found and password is valid
-            const token = createToken(user, schoolname);
+            const token = createToken(currentUser, schoolname);
             res.status(200).json({token: token});
         })
         .catch(() => res.status(404).json({
