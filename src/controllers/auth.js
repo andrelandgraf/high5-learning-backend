@@ -44,14 +44,8 @@ const login = (req, res) => {
             return SchoolModel.find({users: user._id})
         })
         .then(school => {
-            console.log(school);
-            let schoolname;
-            if (!school) {
-                schoolname = "no school";
-            }
-            schoolname = school.name;
             // if user is found and password is valid
-            const token = createToken(currentUser, schoolname);
+            const token = createToken(currentUser, school.name);
             res.status(200).json({token: token});
         })
         .catch(() => res.status(404).json({
