@@ -59,8 +59,9 @@ function mapReduceStatistic(req, res, homework) {
     SubmissionModel.mapReduce(mapReduceObject, function (err, statistics) {
         if (err) {
             res.status(500).json(err);
+        }else{
+            extendMapReduce(req, res, statistics, homework);
         }
-        extendMapReduce(req, res, statistics, homework)
     });
 }
 

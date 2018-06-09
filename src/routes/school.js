@@ -6,7 +6,8 @@ const router = express.Router();
 const middleware = require('../middleware');
 const SchoolController = require('../controllers/school');
 
-router.get('/', middleware.checkAuthentication, SchoolController.getAll);
+// watch out! no middleware needed in getAll!
+router.get('/', SchoolController.getAll);
 router.get('/students/:id', middleware.checkAuthentication, SchoolController.getStudentsOfSchool);
 router.get('/:id', middleware.checkAuthentication, SchoolController.find);
 
