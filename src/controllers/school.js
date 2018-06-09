@@ -6,10 +6,10 @@ const bcrypt = require('bcryptjs');
 const config = require('../config');
 const SchoolModel = require('../models/school');
 
+
 const find = (req, res) => {
     return res.status(200).json('hallo');
 };
-
 
 const getStudentsOfSchool = (req, res) => {
 
@@ -26,6 +26,8 @@ const getStudentsOfSchool = (req, res) => {
 
 };
 
+// author: Andre Landgraf
+// return ALL Schools for Register/Login
 const getAll = (req, res) => {
     SchoolModel.find({}).then((schools) => {
             res.status(200).json(schools);
