@@ -14,7 +14,7 @@ const find = (req, res) => {
 const getStudentsOfSchool = (req, res) => {
 
     let schoolId = req.params.id;
-    if(schoolId === "no"){
+    if (schoolId === "no") {
         schoolId = '5b0c2d6a8440fc2744866726';
     }
 
@@ -26,7 +26,14 @@ const getStudentsOfSchool = (req, res) => {
 
 };
 
+const getAll = (req, res) => {
+    SchoolModel.find({}).then((schools) => {
+            res.status(200).json(schools);
+        }).catch(() => res.status(500).json({error: "No Schools Found"}));
+};
+
 module.exports = {
     find,
-    getStudentsOfSchool
+    getStudentsOfSchool,
+    getAll
 };
