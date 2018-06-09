@@ -46,6 +46,18 @@ const login = (req, res) => {
 
 };
 
+const changePassword = (req, res) => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
+        error: 'Bad Request',
+        message: 'The request body must contain a password property'
+    });
+
+    UserModel.findOneAndUpdate({_id: req.userId}, {password: bcrypt.hashSync(req.body.password, 8)}).exec().then((user)=>{
+        const token = createToken(user);
+        res.status(200).json({token: token});
+    });
+};
+
 /**
  * workflow:
  * 1) check if user is teacher, if so, look for school license code
@@ -319,5 +331,6 @@ module.exports = {
     logout,
     me,
     listMembership,
-    createMembership
+    createMembership,
+    changePassword
 };

@@ -13,5 +13,6 @@ router.get('/me', middleware.checkAuthentication , AuthController.me);
 router.get('/member/:id', middleware.checkAuthentication , AuthController.listMembership);
 router.post('/member/', middleware.checkAuthentication , AuthController.createMembership);
 router.get('/logout', AuthController.logout);
+router.put('/changepw', middleware.checkAuthentication,AuthController.changePassword);
 
 module.exports = router;
