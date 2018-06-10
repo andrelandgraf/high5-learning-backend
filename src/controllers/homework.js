@@ -28,6 +28,26 @@ const create = (req, res) => {
     });
 };
 
+function updateHomework(homework, infoToUpdate, res) {
+    console.log(homework);
+    HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {title: infoToUpdate.title, exercises: infoToUpdate.exercises}}, {new: true})
+        .then((updatedHomework) => {
+            res.status(200).json(updatedHomework);
+        });
+};
+
+const update = (req, res) => {
+
+    if(req.userType !== "Teacher") return res.status(403).json({
+        error: "Access denied",
+        message: "You have to be a teacher in order to update a homework."
+    });
+
+    HomeworkModel.findById(req.params.id)
+        .then((homework) => updateHomework(homework, req.body, res));
+
+};
+
 const getHomeworkDetail = (req, res) => {
 
     let homeworkId = req.params.id;
@@ -93,5 +113,6 @@ module.exports = {
     create,
     getHomeworkDetail,
     remove,
-    changeVisibility
+    changeVisibility,
+    update
 };

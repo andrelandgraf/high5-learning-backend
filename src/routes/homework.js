@@ -12,5 +12,6 @@ router.get('/:id', middleware.checkAuthentication, HomeworkController.getHomewor
 router.post('/:id', middleware.checkAuthentication, HomeworkController.create);
 router.delete('/:id', middleware.checkAuthentication, HomeworkController.remove);
 router.put('/visibility/:id', middleware.checkAuthentication, HomeworkController.changeVisibility);
+router.put('/:id', middleware.checkAuthentication, HomeworkController.update);
 
 module.exports = router;
