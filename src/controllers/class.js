@@ -37,8 +37,8 @@ const create = (req, res) => {
     });
 };
 
-function updateClass(myClass, req, res, passwd) {
-    return ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, password: passwd}}, {new: true}).then((updatedClass) => {
+function updateClass(myClass, req, res) {
+    return ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, students: req.body.students}}, {new: true}).then((updatedClass) => {
         res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
 
     });
@@ -52,10 +52,9 @@ const update = (req, res) => {
             message: "You are not allowed to update a class."
         });
     }
-    const passwd = req.body.title + 2018;
 
     ClassModel.findById(req.params.id)
-        .then((myClass) => updateClass(myClass, req, res, passwd))
+        .then((myClass) => updateClass(myClass, req, res))
         .catch(error => {
             res.status(404).json({
                 error: "Class not found",
@@ -166,12 +165,10 @@ const getInfoSingleClass = (req, res) => {
 
 const getStudentsOfClass = (req, res) => {
     const classId = req.params.id;
-    console.log(classId);
-    UserModel.find({classes: classId, type: "Student"}).exec().then((listOfStudents) => {
-        res.status(200).json(listOfStudents);
+    ClassModel.findById(classId).select('students').populate('students').exec().then((listOfStudents) => {
+        res.status(200).json(listOfStudents.students);
     })
         .catch(error => {
-            console.log(error);
             res.status(404).json({error: "Object not found"});
         })
 };
