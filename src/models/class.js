@@ -22,4 +22,6 @@ const ClassSchema  = new Schema({
     ]
 }, { collection: 'class' });
 
+ClassSchema.set('timestamps', true);
+
 module.exports = mongoose.model('Class', ClassSchema);
