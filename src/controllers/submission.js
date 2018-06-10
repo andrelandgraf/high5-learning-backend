@@ -1,14 +1,12 @@
 "use strict";
 
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
+var mongoose = require('mongoose');
 const config = require('../config');
 const UserModel = require('../models/user');
 const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
 
-// this will return the statistic
+// this will return the statistics
 const getStatisticsForHomework = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
         return res.status(400).json({
@@ -16,20 +14,80 @@ const getStatisticsForHomework = (req, res) => {
             message: 'The request body must contain a id property for the homework'
         });
     const homeworkId = req.params.id;
-    getHomework(homeworkId).exec().then((homework) => mapReduceStatistic(req, res, homework))
+    let myHomework;
+    let myStatistics;
+    let map = {};
+    HomeworkModel.findById(homeworkId).exec()
+        .then((homework) => {
+
+            if (!homework) throw new Error("Homework not found");
+            myHomework = homework;
+            return mapReduceStatistic(homework)
+        })
+
+        .then((statistics) => {
+            if (!statistics) throw new Error("Map Reduce could not find any statistics");
+            myStatistics = statistics;
+            return UserModel.count({classes: myHomework.assignedClass, type: "Student"}).exec();
+        })
+
+        .then((studentCount) => {
+            map.studentCount = studentCount;
+            return SubmissionModel.find({homework: myHomework._id}).exec();
+        })
+
+        .then((submission) => {
+            // no submissions yet
+            console.log(submission);
+            if (!submission) {
+                map.count = 0;
+                map.homework = myHomework;
+                return res.status(200).json(map);
+            }
+            map.count = submission.length;
+            (map.studentCount === 0) ? map.submissionRate = 0 :
+                map.submissionRate = map.count / map.studentCount;
+            map.submissions = submission;
+            map.homework = myHomework;
+            let exerciseStatistics = [];
+            // only one submission yet -> mapreduce failed
+            if (map.count === 1){
+                return res.status(200).json(map);
+            }
+            myStatistics.results.forEach(function (submittedExercise, i) {
+                exerciseStatistics.push({
+                    pickedAnswers: myStatistics.results["" +i].value.pickedAnswers,
+                    answerPercentage: [
+                        myStatistics.results[i].value.pickedAnswers[0] / map.count,
+                        myStatistics.results[i].value.pickedAnswers[1] / map.count,
+                        myStatistics.results[i].value.pickedAnswers[2] / map.count,
+                        myStatistics.results[i].value.pickedAnswers[3] / map.count,
+                        myStatistics.results[i].value.pickedAnswers[3] / map.count,
+                    ],
+                    rightAnswerPicked:
+                        myStatistics.results[i].value.pickedAnswers["" + myHomework.exercises[i].rightSolution],
+                    rightAnswerPercentage:
+                    myStatistics.results[i].value.pickedAnswers["" + myHomework.exercises[i].rightSolution] / map.count
+                });
+            });
+            console.log(exerciseStatistics);
+            map.exerciseStatistics = exerciseStatistics;
+            return res.status(200).json(map);
+        })
+
         .catch(error => {
-            console.log(error);
-            res.status(404).json({error: "Object not found"});
+            if (error.message === "Homework not found") {
+                return res.status(404).json({error: "Homework not found"});
+            }
+            else {
+                return res.status(500).json({error: error.message});
+            }
         });
 
 };
 
-function getHomework(homeworkId) {
-    return HomeworkModel.findById(homeworkId);
-}
-
 // See: http://mongoosejs.com/docs/api.html#mongoose_Mongoose-Model
-function mapReduceStatistic(req, res, homework) {
+function mapReduceStatistic(homework) {
     let mapReduceObject = {};
     mapReduceObject.map = function () {
         // each submission contains the exercises array which stores the picked answer for each exercise of the student
@@ -46,64 +104,17 @@ function mapReduceStatistic(req, res, homework) {
         pickedAnswers[2] = 0;
         pickedAnswers[3] = 0;
         mapArray.forEach(function (pickedAnswer, i) {
-            pickedAnswers["" + pickedAnswer]++;
+            pickedAnswers[pickedAnswer]++;
         });
-        return {pickedAnswers};
+        return {pickedAnswers: pickedAnswers};
     };
     mapReduceObject.query = {
         homework: homework._id
     };
-    mapReduceObject.finalize = function (keyExerciseIndex, reducedValue) {
-        return reducedValue;
-    };
-    SubmissionModel.mapReduce(mapReduceObject, function (err, statistics) {
-        if (err) {
-            res.status(500).json(err);
-        }else{
-            extendMapReduce(req, res, statistics, homework);
-        }
+     return SubmissionModel.mapReduce(mapReduceObject).then((statistics) => {
+         if(!statistics) throw Error("Error in map reduce");
+         return statistics;
     });
-}
-
-function extendMapReduce(req, res, statistics, homework) {
-    SubmissionModel.find({homework: homework._id}).exec()
-        .then((submission) => {
-            const map = {};
-            map.count = submission.length;
-            map.submissions = submission;
-            map.homework = homework;
-            if (map.count === 0) res.status(200).json(map);
-            const exerciseStatistics = statistics.results;
-            exerciseStatistics.forEach(function (submittedExercise, i) {
-                exerciseStatistics["" + i] = {
-                    pickedAnswers: exerciseStatistics["" + i].value.pickedAnswers,
-                    answerPercentage: [
-                        exerciseStatistics["" + i].value.pickedAnswers[0] / map.count,
-                        exerciseStatistics["" + i].value.pickedAnswers[1] / map.count,
-                        exerciseStatistics["" + i].value.pickedAnswers[2] / map.count,
-                        exerciseStatistics["" + i].value.pickedAnswers[3] / map.count,
-                    ],
-                    rightAnswerPicked:
-                        exerciseStatistics["" + i].value.pickedAnswers["" + homework.exercises["" + i].rightSolution],
-                    rightAnswerPercentage:
-                    exerciseStatistics["" + i].value.pickedAnswers["" + homework.exercises["" + i].rightSolution] / map.count
-                };
-            });
-            map.exerciseStatistics = exerciseStatistics;
-
-            UserModel.count({class: homework.assignedClass, type: "Student"}).exec().then((studentCount) => {
-                map.studentCount = studentCount;
-                map.submissionRate = map.count / studentCount;
-                res.status(200).json(map);
-            }).catch(error => {
-                console.log(error);
-                res.status(404).json({error: "Object not found"});
-            });
-        })
-        .catch(error => {
-            console.log(error);
-            res.status(404).json({error: "Object not found"});
-        });
 }
 
 // body has to contain array of exercises, id student and id of the homework
