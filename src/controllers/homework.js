@@ -29,7 +29,6 @@ const create = (req, res) => {
 };
 
 function updateHomework(homework, infoToUpdate, res) {
-    console.log(homework);
     HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {title: infoToUpdate.title, exercises: infoToUpdate.exercises}}, {new: true})
         .then((updatedHomework) => {
             res.status(200).json(updatedHomework);
