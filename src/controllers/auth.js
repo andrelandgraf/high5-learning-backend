@@ -69,13 +69,8 @@ const changePassword = (req, res) => {
             return SchoolModel.findOne({users: user._id})
         })
         .then(school => {
-            let schoolname;
-            if (!school) {
-                schoolname = "no school";
-            }
-            schoolname = school.name;
             // if user is found and password is valid
-            const token = createToken(user, schoolname);
+            const token = createToken(currentUser, school.name);
             res.status(200).json({token: token});
         })
         .catch(() => res.status(404).json({
