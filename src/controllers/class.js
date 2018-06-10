@@ -131,7 +131,7 @@ const remove = (req, res) => {
 
 const find = (req, res) => {
 
-    UserModel.findById(req.userId).populate('classes', 'title description password').then(user => {
+    UserModel.findById(req.userId).populate('classes').then(user => {
 
         res.status(200).json(user.classes);
 
@@ -161,7 +161,43 @@ const findSingleClass = (req, res) => {
                 res.status(200).json([]);
             }
 
-        }).catch(e => res.status(500).json({code:500, title:"Server error" ,msg:"Class could not be found"}))
+        }).catch(e => res.status(500).json({code: 500, title: "Server error", msg: "Class could not be found"}))
+};
+
+const findOpenHomework = (req, res) => {
+
+    let openHw = {};
+    let allHw;
+    UserModel.findById(req.userId).populate('classes').then(user => user.classes).then((classes) => {
+
+        return HomeworkModel.find({
+            $or: classes.map(val => {
+                return {
+                    assignedClass: val._id
+                };
+            })
+        })
+    }).then(homework => {
+        allHw = homework;
+        return SubmissionModel.find({student: req.userId}, 'homework')
+    }).then(submissions => {
+
+        allHw.map(val => {
+            if (!openHw[val.assignedClass]) {
+                openHw[val.assignedClass] = 0;
+            }
+            openHw[val.assignedClass] += allHw.reduce((sum, currVal) => {
+                return (val._id === currVal._id && currVal.visible) ? sum + 1 : sum + 0;
+            }, 0);
+        });
+
+        submissions.map(val => {
+            let classId = allHw.find(hw => (hw._id.toString() === val.homework.toString())).assignedClass;
+            openHw[classId]--;
+        });
+
+        res.status(200).json(openHw);
+    })
 };
 
 const getInfoSingleClass = (req, res) => {
@@ -194,5 +230,6 @@ module.exports = {
     getInfoSingleClass,
     update,
     remove,
-    getStudentsOfClass
+    getStudentsOfClass,
+    findOpenHomework
 };
