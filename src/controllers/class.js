@@ -38,7 +38,13 @@ const create = (req, res) => {
 };
 
 function updateClass(myClass, req, res) {
-    return ClassModel.findOneAndUpdate({_id: myClass}, {$set: {title: req.body.title, description: req.body.description, students: req.body.students}}, {new: true}).then((updatedClass) => {
+    return ClassModel.findOneAndUpdate({_id: myClass}, {
+        $set: {
+            title: req.body.title,
+            description: req.body.description,
+            students: req.body.students
+        }
+    }, {new: true}).then((updatedClass) => {
         res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
 
     });
@@ -68,11 +74,13 @@ function getHomework(myClass) {
         return {myClass: myClass, homework: homework};
     });
 }
+
 function removeSubmission(classAndHomework) {
     return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then(() => {
         return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
     });
 }
+
 function removeHomework(classAndHomework) {
     return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then(() => {
         return classAndHomework.myClass;
@@ -140,26 +148,32 @@ const findSingleClass = (req, res) => {
     const classId = req.params.id;
     ClassModel.findById(classId).populate('homework').exec()
         .then((singleClass) => {
-                if (singleClass) {
-                    res.status(200).json(singleClass);
-                } else {
-                    res.status(200).json([]);
-                }
-            }
-        );
+            if (singleClass) {
+                SubmissionModel.find({student: req.userId}).exec().then((submissions) => {
+                    let withSubmissions = {
+                        singleClass: singleClass,
+                        submissions: submissions,
+                    };
+                    res.status(200).json(withSubmissions);
+                })
 
+            } else {
+                res.status(200).json([]);
+            }
+
+        }).catch(e => res.status(500).json({code:500, title:"Server error" ,msg:"Class could not be found"}))
 };
 
 const getInfoSingleClass = (req, res) => {
     const classId = req.params.id;
     ClassModel.findById(classId).exec().then((singleClass) => {
-                if (singleClass) {
-                    res.status(200).json(singleClass);
-                } else {
-                    res.status(200).json([]);
-                }
+            if (singleClass) {
+                res.status(200).json(singleClass);
+            } else {
+                res.status(200).json([]);
             }
-        );
+        }
+    );
 
 };
 
