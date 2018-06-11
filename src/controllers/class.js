@@ -45,8 +45,19 @@ function updateClass(myClass, req, res) {
             students: req.body.students
         }
     }, {new: true}).then((updatedClass) => {
-        res.status(200).json(updatedClass); // not quite sure about this, what should we give to the response beside the status code?
+        res.status(200).json(updatedClass);
+    });
+}
 
+function deleteClassForNonMember(myClass, req) {
+    return UserModel.updateMany({_id: {$nin: req.body.students}, type: 'Student'}, {$pull: {classes: myClass._id}}, {new: true}).exec().then(() => {
+        return myClass;
+    });
+}
+
+function addClassForNewMembers(myClass, req) {
+    return UserModel.updateMany({_id: {$in: req.body.students}, type: 'Student'}, {$addToSet: {classes: myClass}}, {new: true}).exec().then((b) => {
+        return myClass;
     });
 }
 
@@ -60,6 +71,8 @@ const update = (req, res) => {
     }
 
     ClassModel.findById(req.params.id)
+        .then((myClass) => deleteClassForNonMember(myClass, req))
+        .then((myClass) => addClassForNewMembers(myClass, req))
         .then((myClass) => updateClass(myClass, req, res))
         .catch(error => {
             res.status(404).json({
