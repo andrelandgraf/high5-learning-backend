@@ -12,13 +12,7 @@ const find = (req, res) => {
 };
 
 const getStudentsOfSchool = (req, res) => {
-
-    let schoolId = req.params.id;
-    if (schoolId === "no") {
-        schoolId = '5b0c2d6a8440fc2744866726';
-    }
-
-    SchoolModel.findById(schoolId).populate('users').then((school) => {
+    SchoolModel.findOne({name: req.schoolname}).populate({path:'users', model:'User'}).then((school) => {
         const students = school.users.filter(user => user.type === 'Student');
         res.status(200).json(students);
     }).catch(() => res.status(500).json({error: "Students not found"}));

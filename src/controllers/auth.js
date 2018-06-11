@@ -2,7 +2,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-
+const mongoose = require('mongoose');
 const config = require('../config');
 const UserModel = require('../models/user');
 const SchoolModel = require('../models/school');
@@ -36,22 +36,23 @@ const login = (req, res) => {
 
     UserModel.findOne({username: req.body.username}).exec()
         .then(user => {
+
             // check if the password is valid
             const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
             if (!isPasswordValid) return res.status(401).send({token: null});
 
             currentUser = user;
-            return SchoolModel.find({users: user._id})
-        })
-        .then(school => {
-            // if user is found and password is valid
-            const token = createToken(currentUser, school.name);
-            res.status(200).json({token: token});
-        })
-        .catch(() => res.status(404).json({
+
+            SchoolModel.findOne({users: mongoose.Types.ObjectId(user._id)}).then(school => {
+                const token = createToken(currentUser, school.name);
+                res.status(200).json({token: token});
+            });
+
+        }).catch(() => res.status(404).json({
             error: 'User Not Found',
             message: 'The user was not found.'
-        }));
+        })
+    );
 
 };
 
@@ -183,7 +184,7 @@ const register = (req, res) => {
                         error: 'Not Found',
                         message: `License Code not found`
                     });
-                }else{
+                } else {
                     return res.status(400).json({
                         error: 'Something went wrong!',
                         message: err + err.message
@@ -240,7 +241,7 @@ const register = (req, res) => {
                         error: 'User exists',
                         message: err.message
                     })
-                } else{
+                } else {
                     return res.status(400).json({
                         error: 'Something went wrong!',
                         message: err.message
