@@ -7,6 +7,7 @@ const middleware = require('../middleware');
 const ClassController = require('../controllers/class');
 
 router.get('/', middleware.checkAuthentication ,ClassController.find);
+router.get('/allhomeworks', middleware.checkAuthentication ,ClassController.getAllHomeworks);
 router.get('/details/:id', middleware.checkAuthentication, ClassController.getInfoSingleClass);
 router.get('/students/:id',ClassController.getStudentsOfClass);
 router.get('/openhw/:id',middleware.checkAuthentication, ClassController.findOpenHomework);

@@ -41,6 +41,24 @@ const create = (req, res) => {
 
 };
 
+const getAllHomeworks = (req,res) => {
+
+    if (req.userType !== "Teacher") {
+        return res.status(403).json({
+            error: "Access Denied",
+            message: "You are not allowed to create a new class."
+        });
+    }
+    UserModel.findById(req.userId).populate('classes').select('classes').exec()
+        .then((classes) => getHomeworkOfAllClasses(classes, res))
+};
+
+function getHomeworkOfAllClasses(classes,res) {
+    return HomeworkModel.find({assignedClass: classes.classes}).exec().then((homework) => {
+        res.status(200).json(homework);
+    })
+}
+
 
 function updateClass(myClass, req, res) {
     return ClassModel.findOneAndUpdate({_id: myClass}, {
@@ -269,5 +287,6 @@ module.exports = {
     update,
     remove,
     getStudentsOfClass,
-    findOpenHomework
+    findOpenHomework,
+    getAllHomeworks
 };
