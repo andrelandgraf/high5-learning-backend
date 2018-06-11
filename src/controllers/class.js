@@ -17,25 +17,30 @@ const create = (req, res) => {
         });
     }
 
-
     const addClass = Object.assign(req.body);
+    let newClass;
 
     ClassModel.create(addClass).then((myClass) => {
-        UserModel.findById(req.userId).exec().then(user => {
-            user.classes.push(myClass._id);
+        newClass = myClass;
+        return UserModel.findById(req.userId).exec()
+    })
+        .then(user => {
+            user.classes.push(newClass._id);
             user.save();
-        });
+            newClass.students.map(student => {
+                UserModel.findById(student).then(user => {
+                    user.classes.push(newClass._id);
+                    user.save();
+                })
+            });
+        })
+        .then(() => res.status(200).json(newClass))
+        .catch(e => {
+            res.status(500).json(e);
+        })
 
-        myClass.students.map(student => {
-            UserModel.findById(student).then(user => {
-                user.classes.push(myClass._id);
-                user.save();
-            })
-        });
-
-        res.status(200).json(myClass);
-    });
 };
+
 
 function updateClass(myClass, req, res) {
     return ClassModel.findOneAndUpdate({_id: myClass}, {
@@ -50,13 +55,19 @@ function updateClass(myClass, req, res) {
 }
 
 function deleteClassForNonMember(myClass, req) {
-    return UserModel.updateMany({_id: {$nin: req.body.students}, type: 'Student'}, {$pull: {classes: myClass._id}}, {new: true}).exec().then(() => {
+    return UserModel.updateMany({
+        _id: {$nin: req.body.students},
+        type: 'Student'
+    }, {$pull: {classes: myClass._id}}, {new: true}).exec().then(() => {
         return myClass;
     });
 }
 
 function addClassForNewMembers(myClass, req) {
-    return UserModel.updateMany({_id: {$in: req.body.students}, type: 'Student'}, {$addToSet: {classes: myClass}}, {new: true}).exec().then((b) => {
+    return UserModel.updateMany({
+        _id: {$in: req.body.students},
+        type: 'Student'
+    }, {$addToSet: {classes: myClass}}, {new: true}).exec().then((b) => {
         return myClass;
     });
 }
@@ -159,78 +170,92 @@ const find = (req, res) => {
 
 const findSingleClass = (req, res) => {
     const classId = req.params.id;
+    let mySingleClass;
     ClassModel.findById(classId).populate('homework').exec()
         .then((singleClass) => {
+            mySingleClass = singleClass;
             if (singleClass) {
-                SubmissionModel.find({student: req.userId}).exec().then((submissions) => {
-                    let withSubmissions = {
-                        singleClass: singleClass,
-                        submissions: submissions,
-                    };
-                    res.status(200).json(withSubmissions);
-                })
-
+                return SubmissionModel.find({student: req.userId}).exec();
             } else {
-                res.status(200).json([]);
+                throw new Error("Class could not be found")
             }
-
-        }).catch(e => res.status(500).json({code: 500, title: "Server error", msg: "Class could not be found"}))
+        })
+        .then((submissions) => {
+            let withSubmissions = {
+                singleClass: mySingleClass,
+                submissions: submissions,
+            };
+            res.status(200).json(withSubmissions);
+        }).catch((e) => {
+        if (!mySingleClass) {
+            res.status(200).json([]);
+        } else {
+            res.status(500).json({code: 500, title: "Server error", msg: e});
+        }
+    })
 };
+
 
 const findOpenHomework = (req, res) => {
 
     let openHw = {};
     let allHw;
-    UserModel.findById(req.userId).populate('classes').then(user => user.classes).then((classes) => {
+    UserModel.findById(req.userId).populate('classes')
+        .then(user => user.classes)
+        .then((classes) => {
 
-        return HomeworkModel.find({
-            $or: classes.map(val => {
-                return {
-                    assignedClass: val._id
-                };
+            return HomeworkModel.find({
+                $or: classes.map(val => {
+                    return {
+                        assignedClass: val._id
+                    };
+                })
             })
         })
-    }).then(homework => {
-        allHw = homework;
-        return SubmissionModel.find({student: req.userId}, 'homework')
-    }).then(submissions => {
+        .then(homework => {
+            allHw = homework;
+            return SubmissionModel.find({student: req.userId}, 'homework')
+        })
+        .then(submissions => {
 
-        allHw.map(val => {
-            if (!openHw[val.assignedClass]) {
-                openHw[val.assignedClass] = 0;
-            }
-            openHw[val.assignedClass] += allHw.reduce((sum, currVal) => {
-                return (val._id === currVal._id && currVal.visible) ? sum + 1 : sum + 0;
-            }, 0);
-        });
+            allHw.map(val => {
+                if (!openHw[val.assignedClass]) {
+                    openHw[val.assignedClass] = 0;
+                }
+                openHw[val.assignedClass] += allHw.reduce((sum, currVal) => {
+                    return (val._id === currVal._id && currVal.visible) ? sum + 1 : sum + 0;
+                }, 0);
+            });
 
-        submissions.map(val => {
-            let classId = allHw.find(hw => (hw._id.toString() === val.homework.toString())).assignedClass;
-            openHw[classId]--;
-        });
+            submissions.map(val => {
+                let classId = allHw.find(hw => (hw._id.toString() === val.homework.toString())).assignedClass;
+                openHw[classId]--;
+            });
 
-        res.status(200).json(openHw);
-    })
+            res.status(200).json(openHw);
+        })
 };
 
 const getInfoSingleClass = (req, res) => {
     const classId = req.params.id;
-    ClassModel.findById(classId).exec().then((singleClass) => {
-            if (singleClass) {
-                res.status(200).json(singleClass);
-            } else {
-                res.status(200).json([]);
+    ClassModel.findById(classId).exec()
+        .then((singleClass) => {
+                if (singleClass) {
+                    res.status(200).json(singleClass);
+                } else {
+                    res.status(200).json([]);
+                }
             }
-        }
-    );
+        );
 
 };
 
 const getStudentsOfClass = (req, res) => {
     const classId = req.params.id;
-    ClassModel.findById(classId).select('students').populate('students').exec().then((listOfStudents) => {
-        res.status(200).json(listOfStudents.students);
-    })
+    ClassModel.findById(classId).select('students').populate('students').exec()
+        .then((listOfStudents) => {
+            res.status(200).json(listOfStudents.students);
+        })
         .catch(error => {
             res.status(404).json({error: "Object not found"});
         })
