@@ -1,6 +1,6 @@
 "use strict";
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const config = require('../config');
 const UserModel = require('../models/user');
 const HomeworkModel = require('../models/homework');
@@ -38,7 +38,6 @@ const getStatisticsForHomework = (req, res) => {
 
         .then((submission) => {
             // no submissions yet
-            console.log(submission);
             if (!submission) {
                 map.count = 0;
                 map.homework = myHomework;
@@ -52,6 +51,18 @@ const getStatisticsForHomework = (req, res) => {
             let exerciseStatistics = [];
             // only one submission yet -> mapreduce failed
             if (map.count === 1){
+                for(let i = 0; i < map.count; i++){
+                    let rightOne = map.homework.exercises[i].rightSolution;
+                    let picked = submission[0].exercises[i];
+                    let pickedAnswers = [0, 0, 0, 0];
+                    pickedAnswers[picked] = 1;
+                    exerciseStatistics.push({
+                        pickedAnswers: pickedAnswers,
+                        answerPercentage: pickedAnswers,
+                        rightAnswerPicked: (rightOne === picked) ? 1 : 0,
+                        rightAnswerPercentage: (rightOne === picked) ? 1 : 0
+                    });
+                }
                 return res.status(200).json(map);
             }
             myStatistics.results.forEach(function (submittedExercise, i) {
@@ -70,7 +81,6 @@ const getStatisticsForHomework = (req, res) => {
                     myStatistics.results[i].value.pickedAnswers["" + myHomework.exercises[i].rightSolution] / map.count
                 });
             });
-            console.log(exerciseStatistics);
             map.exerciseStatistics = exerciseStatistics;
             return res.status(200).json(map);
         })
