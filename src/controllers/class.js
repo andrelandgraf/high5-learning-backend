@@ -41,7 +41,7 @@ const create = (req, res) => {
 
 };
 
-const getAllHomeworks = (req,res) => {
+const getAllHomework = (req,res) => {
 
     if (req.userType !== "Teacher") {
         return res.status(403).json({
@@ -54,7 +54,7 @@ const getAllHomeworks = (req,res) => {
 };
 
 function getHomeworkOfAllClasses(classes,res) {
-    return HomeworkModel.find({assignedClass: classes.classes}).exec().then((homework) => {
+    return ClassModel.find({_id: classes.classes}).select('homework _id title').populate('homework').exec().then((homework) => {
         res.status(200).json(homework);
     })
 }
@@ -288,5 +288,5 @@ module.exports = {
     remove,
     getStudentsOfClass,
     findOpenHomework,
-    getAllHomeworks
+    getAllHomework
 };
