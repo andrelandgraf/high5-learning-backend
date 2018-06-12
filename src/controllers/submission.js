@@ -8,6 +8,52 @@ const SubmissionModel = require('../models/submission');
 
 // this will return the statistics
 const getStatisticsForHomework = (req, res) => {
+    // aggregate over the create time of submissions
+    SubmissionModel.aggregate([
+        {
+            $match: {
+                homework: mongoose.Types.ObjectId('5b2001ecaf9cb22a44a96ce0')
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    year: {$year: "$createdAt"},
+                    month: {$month: "$createdAt"},
+                    day: {$dayOfMonth: "$createdAt"},
+                },
+                count: {$sum: 1},
+                students: {$push: "$student"},
+            }
+        }]
+    ).then((model) => {
+        console.log(model);
+    }).catch((error) => {
+        console.log(error);
+    });
+
+    // aggregate over the create time of submissions
+    SubmissionModel.aggregate([
+        {
+            $match: {
+                homework: mongoose.Types.ObjectId('5b2001ecaf9cb22a44a96ce0')
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    date: {'$dateToString': {format: '%Y-%m-%d', date: '$createdAt'}},
+                },
+                students: {$push: "$student"},
+                count: {$sum: 1}
+            }
+        }]
+    ).then((model) => {
+        console.log(model);
+    }).catch((error) => {
+        console.log(error);
+    });
+
     if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
         return res.status(400).json({
             error: 'Bad Request',
@@ -50,8 +96,8 @@ const getStatisticsForHomework = (req, res) => {
             map.homework = myHomework;
             let exerciseStatistics = [];
             // only one submission yet -> mapreduce failed
-            if (map.count === 1){
-                for(let i = 0; i < map.homework.exercises.length; i++){
+            if (map.count === 1) {
+                for (let i = 0; i < map.homework.exercises.length; i++) {
                     let rightOne = map.homework.exercises[i].rightSolution;
                     let picked = submission[0].exercises[i];
                     let pickedAnswers = [0, 0, 0, 0];
@@ -68,7 +114,7 @@ const getStatisticsForHomework = (req, res) => {
             }
             myStatistics.results.forEach(function (submittedExercise, i) {
                 exerciseStatistics.push({
-                    pickedAnswers: myStatistics.results["" +i].value.pickedAnswers,
+                    pickedAnswers: myStatistics.results["" + i].value.pickedAnswers,
                     answerPercentage: [
                         myStatistics.results[i].value.pickedAnswers[0] / map.count,
                         myStatistics.results[i].value.pickedAnswers[1] / map.count,
@@ -122,9 +168,9 @@ function mapReduceStatistic(homework) {
     mapReduceObject.query = {
         homework: homework._id
     };
-     return SubmissionModel.mapReduce(mapReduceObject).then((statistics) => {
-         if(!statistics) throw Error("Error in map reduce");
-         return statistics;
+    return SubmissionModel.mapReduce(mapReduceObject).then((statistics) => {
+        if (!statistics) throw Error("Error in map reduce");
+        return statistics;
     });
 }
 
