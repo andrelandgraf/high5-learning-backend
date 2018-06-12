@@ -51,7 +51,7 @@ const getStatisticsForHomework = (req, res) => {
             let exerciseStatistics = [];
             // only one submission yet -> mapreduce failed
             if (map.count === 1){
-                for(let i = 0; i < map.count; i++){
+                for(let i = 0; i < map.homework.exercises.length; i++){
                     let rightOne = map.homework.exercises[i].rightSolution;
                     let picked = submission[0].exercises[i];
                     let pickedAnswers = [0, 0, 0, 0];
@@ -63,6 +63,7 @@ const getStatisticsForHomework = (req, res) => {
                         rightAnswerPercentage: (rightOne === picked) ? 1 : 0
                     });
                 }
+                map.exerciseStatistics = exerciseStatistics;
                 return res.status(200).json(map);
             }
             myStatistics.results.forEach(function (submittedExercise, i) {
