@@ -36,24 +36,46 @@ const login = (req, res) => {
 
     UserModel.findOne({username: req.body.username}).exec()
         .then(user => {
-
+            if (!user) throw new Error("User not found");
             // check if the password is valid
             const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
             if (!isPasswordValid) return res.status(401).send({token: null});
-
             currentUser = user;
+            return SchoolModel.findOne({users: mongoose.Types.ObjectId(user._id)});
 
-            SchoolModel.findOne({users: mongoose.Types.ObjectId(user._id)}).then(school => {
-                const token = createToken(currentUser, school.name);
-                res.status(200).json({token: token});
-            });
-
-        }).catch(() => res.status(404).json({
-            error: 'User Not Found',
-            message: 'The user was not found.'
         })
-    );
 
+        .then(school => {
+            if (!school) throw new Error("School not found");
+            const token = createToken(currentUser, school.name);
+            res.status(200).json({token: token});
+        })
+
+
+        .catch((error) => {
+            if (error.message === "User not found") {
+                res.status(404).json(
+                    {
+                        error: 'User Not Found',
+                        message: 'The user was not found.'
+                    }
+                )
+            } else if (error.message === "School not found") {
+                res.status(404).json(
+                    {
+                        error: 'School Not Found',
+                        message: 'The school was not found.'
+                    }
+                )
+            } else {
+                res.status(500).json(
+                    {
+                        error: 'Internal Error',
+                        message: 'An internal error occurred'
+                    }
+                )
+            }
+        });
 };
 
 const changePassword = (req, res) => {
@@ -62,18 +84,7 @@ const changePassword = (req, res) => {
         message: 'The request body must contain a password property'
     });
 
-    let currentUser;
-
     UserModel.findOneAndUpdate({_id: req.userId}, {password: bcrypt.hashSync(req.body.password, 8)}).exec()
-        .then((user) => {
-            currentUser = user;
-            return SchoolModel.findOne({users: user._id})
-        })
-        .then(school => {
-            // if user is found and password is valid
-            const token = createToken(currentUser, school.name);
-            res.status(200).json({token: token});
-        })
         .catch(() => res.status(404).json({
             error: 'User Not Found',
             message: 'The user was not found.'
