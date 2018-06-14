@@ -62,7 +62,13 @@ const getStatisticsForHomework = (req, res) => {
         })
 
         .then((aggregatedSubmissions) => {
+            // populate a result json via the model you want to get
+            return UserModel.populate(aggregatedSubmissions, {path: "students"})
+        })
+
+        .then((aggregatedSubmissions) => {
             // no submissions yet
+            console.log(aggregatedSubmissions);
             if (!mySubmissions) {
                 map.count = 0;
                 map.homework = myHomework;
