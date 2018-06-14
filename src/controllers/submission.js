@@ -63,7 +63,7 @@ const getStatisticsForHomework = (req, res) => {
 
         .then((aggregatedSubmissions) => {
             // populate a result json via the model you want to get
-            return UserModel.populate(aggregatedSubmissions, {path: "students"})
+            return UserModel.populate(aggregatedSubmissions, {path: "students", select: ["username", "_id"]})
         })
 
         .then((aggregatedSubmissions) => {
