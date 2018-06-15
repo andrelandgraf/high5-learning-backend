@@ -5,6 +5,7 @@ const config = require('../config');
 const UserModel = require('../models/user');
 const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
+const ClassModel = require('../models/class');
 
 // this will return the statistics
 const getStatisticsForHomework = (req, res) => {
@@ -189,8 +190,39 @@ const findSubmissionOfUserByHomework = (req, res) => {
         })
 };
 
+const getRankingOfSubmissions = (req, res) => {
+
+    const classId = req.params.id;
+    const userId = req.userId;
+    let homeworkRanking = {};
+
+    let homeworkOfClass;
+
+    ClassModel.findById(classId, 'homework').populate('homework')
+        .then(result => {
+            homeworkOfClass = result.homework.map(val => val._id);
+            return SubmissionModel.find({homework: homeworkOfClass}).sort({homework: 'asc', createdAt: 'asc'});
+        })
+        .then(submissions => {
+            homeworkOfClass.map(homeworkId => {
+                const submissionsOfHw = submissions.filter(submission => submission.homework.toString() === homeworkId.toString());
+                submissionsOfHw.map((submission, rank) => {
+                    if (submission.student.toString() === userId.toString()) {
+                        homeworkRanking[submission.homework] = rank+1;
+                    }
+                })
+            });
+            res.status(200).json(homeworkRanking);
+        })
+        .catch(e => {
+            res.status(500).json(e);
+        })
+
+};
+
 module.exports = {
     getStatisticsForHomework,
     create,
-    findSubmissionOfUserByHomework
+    findSubmissionOfUserByHomework,
+    getRankingOfSubmissions
 };
