@@ -36,7 +36,7 @@ const login = (req, res) => {
 
     UserModel.findOne({username: req.body.username}).exec()
         .then(user => {
-            if (!user) throw new Error("User not found");
+            if (!user) throw new Error("User Not Found");
             // check if the password is valid
             const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
             if (!isPasswordValid) return res.status(401).send({token: null});
@@ -46,24 +46,24 @@ const login = (req, res) => {
         })
 
         .then(school => {
-            if (!school) throw new Error("School not found");
+            if (!school) throw new Error("School Not Found");
             const token = createToken(currentUser, school.name);
             res.status(200).json({token: token});
         })
 
 
         .catch((error) => {
-            if (error.message === "User not found") {
+            if (error.message === "User Not Found") {
                 res.status(404).json(
                     {
-                        error: 'User Not Found',
+                        error: 'Not Found',
                         message: 'The user was not found.'
                     }
                 )
-            } else if (error.message === "School not found") {
+            } else if (error.message === "School Not Found") {
                 res.status(404).json(
                     {
-                        error: 'School Not Found',
+                        error: 'SNot Found',
                         message: 'The school was not found.'
                     }
                 )
@@ -303,10 +303,7 @@ const listMembership = (req, res) => {
     UserModel.findById(userId).select('username classes').exec()
         .then(user => {
 
-            if (!user) return res.status(404).json({
-                error: 'Not Found',
-                message: `User not found`
-            });
+            if (!user) throw new Error("User Not Found");
 
             let isClassOfUser = false;
             user.classes.forEach(function (c) {
@@ -316,14 +313,14 @@ const listMembership = (req, res) => {
             });
 
             if (isClassOfUser === true) {
-                res.status(200).json(
+                return res.status(200).json(
                     {
                         user: user.username,
                         classes: user.classes
                     }
                 );
             } else {
-                res.status(200).json(
+                return res.status(200).json(
                     {
                         user: user.username,
                         classes: -1
@@ -331,10 +328,19 @@ const listMembership = (req, res) => {
                 );
             }
         })
-        .catch(error => res.status(500).json({
-            error: 'Internal Server Error',
-            message: error.message
-        }));
+        .catch((error) => {
+            if (error.message === "User Not Found") {
+                return res.status(404).json({
+                    error: 'Not Found',
+                    message: `User not found`
+                });
+            }else{
+                return res.status(500).json({
+                    error: 'Internal Server Error',
+                    message: error.message
+                });
+            }
+        });
 };
 
 const createMembership = (req, res) => {
@@ -353,63 +359,62 @@ const createMembership = (req, res) => {
     const userId = req.body.user;
     const classId = req.body.class;
 
-    UserModel.findById(userId).select('username classes').exec()
-        .then(user => {
+    let myUser;
 
-            if (!user) return res.status(404).json({
-                error: 'Not Found',
-                message: `User not found`
+    UserModel.findById(userId).select('username classes').exec()
+        .then((user) => {
+            if (!user) throw new Error("User Not Found");
+            myUser = user;
+            return ClassModel.findById(classId).exec();
+        })
+        .then((myClass) => {
+            if (!myClass) throw new Error("Class Not found");
+
+            let isClassOfUser = false;
+            myUser.classes.forEach(function (c) {
+                if (String(c) === classId) {
+                    isClassOfUser = true;
+                }
             });
 
-            ClassModel.findById(classId).exec()
-                .then(myClass => {
-                    if (!myClass)
-                        return res.status(404).json({
-                            error: 'Not Found',
-                            message: `Class not found`
-                        });
-
-                    let isClassOfUser = false;
-                    user.classes.forEach(function (c) {
-                        if (String(c) === classId) {
-                            isClassOfUser = true;
-                        }
-                    });
-
-                    if (isClassOfUser) {
-                        res.status(200).json(
-                            {
-                                user: user.username,
-                                classes: user.classes
-                            }
-                        );
-                    } else {
-                        // add class to the classes array of the user
-                        user.classes.push(myClass._id);
-                        user.save(function (err, doc, numbersAffected) {
-                            if (err) {
-                                res.status(500).json({
-                                    error: 'Internal server error',
-                                    message: error.message
-                                })
-                            }
-
-                            res.status(200).json({
-                                user: user.username,
-                                classes: user.classes
-                            });
-                        });
+            if (isClassOfUser) {
+                return res.status(200).json(
+                    {
+                        user: user.username,
+                        classes: user.classes
                     }
-                })
-                .catch(error => res.status(500).json({
+                );
+            } else {
+                // add class to the classes array of the user
+                myUser.classes.push(myClass._id);
+                myUser.save(function (err, doc, numbersAffected) {
+                    if (err) throw new Error(err.message);
+
+                    return res.status(200).json({
+                        user: user.username,
+                        classes: user.classes
+                    });
+                });
+            }
+        })
+        .catch((error) => {
+            if (error.message === "User Not Found") {
+                return res.status(404).json({
+                    error: 'Not Found',
+                    message: `User not found`
+                });
+            } else if (error.message === "Class Not Found") {
+                return res.status(404).json({
+                    error: 'Not Found',
+                    message: `Class not found`
+                });
+            } else {
+                return res.status(500).json({
                     error: 'Internal Server Error',
                     message: error.message
-                }));
-        })
-        .catch(error => res.status(500).json({
-            error: 'Internal Server Error',
-            message: error.message
-        }));
+                })
+            }
+        });
 };
 
 module.exports = {
