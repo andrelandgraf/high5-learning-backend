@@ -3,6 +3,7 @@
 const jwt    = require('jsonwebtoken');
 
 const config = require ('./config');
+const errorHandler = require('./error');
 
 const allowCrossDomain = (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -22,28 +23,26 @@ const allowCrossDomain = (req, res, next) => {
 const checkAuthentication = (req, res, next) => {
     // if header auth is empty, no token
     if(req.headers === undefined || req.headers['authorization'] === undefined ){
-        return res.status(401).send({
-            error: 'Unauthorized',
-            message: 'No token provided in the request'
-        });
+        const err = errorHandler.handle('No token provided in the request');
+        return res.status(err.code).json(err);
     }
 
     // check header or url parameters or post parameters for token
     const token = req.headers['authorization'].substring(4);
 
 
-    if (!token)
-        return res.status(401).send({
-            error: 'Unauthorized',
-            message: 'No token provided in the request'
-        });
+    if (!token){
+        const err = errorHandler.handle('No token provided in the request');
+        return res.status(err.code).json(err);
+    }
+
 
     // verifies secret and checks exp
-    jwt.verify(token, config.JwtSecret, (err, decoded) => {
-        if (err) return res.status(401).send({
-            error: 'Unauthorized',
-            message: 'Failed to authenticate token.'
-        });
+    jwt.verify(token, config.JwtSecret, (error, decoded) => {
+        if (error){
+            const err = errorHandler.handle('No token provided in the request');
+            return res.status(err.code).json(err);
+        }
 
         // if everything is good, save to request for use in other routes
         req.userId = decoded.id;
@@ -55,17 +54,7 @@ const checkAuthentication = (req, res, next) => {
 
 };
 
-const errorHandler = (err, req, res, next) => {
-    if (res.headersSent) {
-        return next(err)
-    }
-    res.status(500);
-    res.render('error', { error: err })
-};
-
-
 module.exports = {
     allowCrossDomain,
-    checkAuthentication,
-    errorHandler
+    checkAuthentication
 };

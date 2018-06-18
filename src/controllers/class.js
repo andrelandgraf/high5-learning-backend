@@ -1,30 +1,25 @@
 "use strict";
 
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
 const UserModel = require('../models/user');
 const ClassModel = require('../models/class');
 const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
+const errorHandler = require('../error');
 
 const create = (req, res) => {
 
-    if (req.userType !== "Teacher") {
-        return res.status(403).json({
-            error: "Access Denied",
-            message: "You are not allowed to create a new class."
-        });
-    }
+    if (req.userType !== "Teacher") throw new Error("Not authorized");
 
     const addClass = Object.assign(req.body);
     let newClass;
 
-    ClassModel.create(addClass).then((myClass) => {
-        newClass = myClass;
-        return UserModel.findById(req.userId).exec()
-    })
+    ClassModel.create(addClass)
+        .then((myClass) => {
+            newClass = myClass;
+            return UserModel.findById(req.userId).exec()
+        })
         .then(user => {
+            if (!user) throw new Error("User not found");
             user.classes.push(newClass._id);
             user.save();
             newClass.students.map(student => {
@@ -35,30 +30,32 @@ const create = (req, res) => {
             });
         })
         .then(() => res.status(200).json(newClass))
-        .catch(e => {
-            res.status(500).json(e);
+        .catch(error => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         })
 
 };
 
-const getAllHomework = (req,res) => {
+// Returns an array of all classes including their homework
+const getAllHomework = (req, res) => {
 
-    if (req.userType !== "Teacher") {
-        return res.status(403).json({
-            error: "Access Denied",
-            message: "You are not allowed to create a new class."
-        });
-    }
+    if (req.userType !== "Teacher") throw new Error("Not authorized");
+
     UserModel.findById(req.userId).populate('classes').select('classes').exec()
-        .then((classes) => getHomeworkOfAllClasses(classes, res))
+        .then((classes) => {
+            if(!classes) throw new Error('Classes not found');
+            return ClassModel.find({_id: classes.classes}).select('homework _id title').populate('homework')
+        })
+        .then((homework) => {
+            if(!homework) throw new Error('No homework found');
+            res.status(200).json(homework);
+        })
+        .catch(error => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
+        })
 };
-
-function getHomeworkOfAllClasses(classes,res) {
-    return ClassModel.find({_id: classes.classes}).select('homework _id title').populate('homework').exec().then((homework) => {
-        res.status(200).json(homework);
-    })
-}
-
 
 function updateClass(myClass, req, res) {
     return ClassModel.findOneAndUpdate({_id: myClass}, {
@@ -171,57 +168,61 @@ const remove = (req, res) => {
 
 };
 
+// Returns an array of all classes a user is assigned to.
 const find = (req, res) => {
 
     UserModel.findById(req.userId).populate('classes').then(user => {
-
+        if (!user) throw new Error("User not found");
         res.status(200).json(user.classes);
 
     }).catch(error => {
-        res.status(404).json({
-            error: "User not found",
-            message: "The user could not be found, so no classes can be displayed."
-        });
+        const err = errorHandler.handle(error.message);
+        res.status(err.code).json(err);
     });
 
 };
 
-const findSingleClass = (req, res) => {
+// This method is invoked when displaying the class details (i.e. the homework of this class)
+const findHomeworkOfClass = (req, res) => {
     const classId = req.params.id;
     let mySingleClass;
     ClassModel.findById(classId).populate('homework').exec()
         .then((singleClass) => {
             mySingleClass = singleClass;
-            if (singleClass) {
-                return SubmissionModel.find({student: req.userId}).exec();
-            } else {
-                throw new Error("Class could not be found")
-            }
+            if (!singleClass) throw new Error("Class not found");
+            return SubmissionModel.find({student: req.userId}).exec();
         })
         .then((submissions) => {
+            if (!submissions) throw new Error("No submission found");
             let withSubmissions = {
                 singleClass: mySingleClass,
                 submissions: submissions,
             };
             res.status(200).json(withSubmissions);
-        }).catch((e) => {
-        if (!mySingleClass) {
-            res.status(200).json([]);
-        } else {
-            res.status(500).json({code: 500, title: "Server error", msg: e});
-        }
-    })
+        })
+        .catch((e) => {
+            if (!mySingleClass) {
+                res.status(200).json([]);
+            } else {
+                const err = errorHandler.handle(e.message);
+                res.status(err.code).json(err);
+            }
+        })
 };
 
-
+// This method checks if there are homework for all classes of a student that are not submitted yet.
 const findOpenHomework = (req, res) => {
 
     let openHw = {};
-    let allHw;
+    let allHw = [];
     UserModel.findById(req.userId).populate('classes')
-        .then(user => user.classes)
+        .then(user => {
+            if (!user) throw new Error("User not found");
+            return user.classes;
+        })
         .then((classes) => {
-
+            if (!classes) throw new Error("Classes not found");
+            if (classes.length === 0) return [];
             return HomeworkModel.find({
                 $or: classes.map(val => {
                     return {
@@ -229,13 +230,16 @@ const findOpenHomework = (req, res) => {
                     };
                 })
             })
+
         })
         .then(homework => {
+            if (!homework) throw new Error("No homework found");
+            if (homework.length === 0) return [];
             allHw = homework;
             return SubmissionModel.find({student: req.userId}, 'homework')
         })
         .then(submissions => {
-
+            if (!submissions) throw new Error("No submission found");
             allHw.map(val => {
                 if (!openHw[val.assignedClass]) {
                     openHw[val.assignedClass] = 0;
@@ -244,46 +248,39 @@ const findOpenHomework = (req, res) => {
                     return (val._id === currVal._id && currVal.visible) ? sum + 1 : sum + 0;
                 }, 0);
             });
-
-            submissions.map(val => {
-                let classId = allHw.find(hw => (hw._id.toString() === val.homework.toString())).assignedClass;
-                openHw[classId]--;
-            });
+            if (submissions.length > 0) {
+                submissions.map(val => {
+                    let classId = allHw.find(hw => (hw._id.toString() === val.homework.toString())).assignedClass;
+                    openHw[classId]--;
+                });
+            }
 
             res.status(200).json(openHw);
         })
+        .catch(error => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
+        })
 };
 
-const getInfoSingleClass = (req, res) => {
-    const classId = req.params.id;
-    ClassModel.findById(classId).exec()
-        .then((singleClass) => {
-                if (singleClass) {
-                    res.status(200).json(singleClass);
-                } else {
-                    res.status(200).json([]);
-                }
-            }
-        );
-
-};
-
+// Returns all students that are assigned to a specific class.
 const getStudentsOfClass = (req, res) => {
+    if (req.userType === 'Student') throw new Error('Not authorized');
     const classId = req.params.id;
     ClassModel.findById(classId).select('students').populate('students').exec()
         .then((listOfStudents) => {
             res.status(200).json(listOfStudents.students);
         })
         .catch(error => {
-            res.status(404).json({error: "Object not found"});
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         })
 };
 
 module.exports = {
     create,
     find,
-    findSingleClass,
-    getInfoSingleClass,
+    findHomeworkOfClass,
     update,
     remove,
     getStudentsOfClass,
