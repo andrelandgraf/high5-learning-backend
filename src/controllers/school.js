@@ -21,6 +21,9 @@ const getStudentsOfSchool = (req, res) => {
 const getAll = (req, res) => {
     SchoolModel.find().then((schools) => {
         if (!schools) throw new Error("Schools not found");
+        for(let i = 0; i < schools.length; i++){
+            schools[i].license = "very secret";
+        }
         res.status(200).json(schools);
     }).catch((error) => {
         const err = errorHandler.handle(error.message);
