@@ -248,7 +248,7 @@ const findOpenHomework = (req, res) => {
     UserModel.findById(req.userId).populate('classes')
         .then(user =>  {
             if (!user) throw new Error("User not found!");
-            user.classes
+            return user.classes
         })
         .then((classes) => {
             if (!classes) throw new Error("Classes not found");
@@ -296,7 +296,6 @@ const getInfoSingleClass = (req, res) => {
                 }
             }
         );
-
 };
 
 const getStudentsOfClass = (req, res) => {
@@ -313,7 +312,6 @@ const getStudentsOfClass = (req, res) => {
 module.exports = {
     create,
     find,
-    getInfoSingleClass,
     findHomeworkOfClass,
     update,
     remove,
