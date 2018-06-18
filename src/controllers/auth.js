@@ -7,6 +7,7 @@ const config = require('../config');
 const UserModel = require('../models/user');
 const SchoolModel = require('../models/school');
 const ClassModel = require('../models/class');
+const errorHandler = require('../error');
 
 
 // creates a token with the id, the username and the user type (e.g. student or teacher)
@@ -85,10 +86,11 @@ const changePassword = (req, res) => {
     });
 
     UserModel.findOneAndUpdate({_id: req.userId}, {password: bcrypt.hashSync(req.body.password, 8)}).exec()
-        .catch(() => res.status(404).json({
-            error: 'User Not Found',
-            message: 'The user was not found.'
-        }));
+        .then(() => res.status(200).json({code: 200, message: "success", error: ""}))
+        .catch((error) => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
+        });
 };
 
 /**
@@ -334,7 +336,7 @@ const listMembership = (req, res) => {
                     error: 'Not Found',
                     message: `User not found`
                 });
-            }else{
+            } else {
                 return res.status(500).json({
                     error: 'Internal Server Error',
                     message: error.message
