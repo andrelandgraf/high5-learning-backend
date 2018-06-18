@@ -6,30 +6,41 @@ const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
 const errorHandler = require('../error');
 
+// here you create a new class
 const create = (req, res) => {
 
-    if (req.userType !== "Teacher") throw new Error("Not authorized");
+        if (req.userType !== "Teacher") {
+            let err = errorHandler.handle(error.message);
+            return res.status(err.code).json(err);
+        };
 
     const addClass = Object.assign(req.body);
     let newClass;
 
     ClassModel.create(addClass)
         .then((myClass) => {
+            if (!myClass) throw new Error("Class not created!"); // this error is impossible to trigger I guess
             newClass = myClass;
             return UserModel.findById(req.userId).exec()
         })
         .then(user => {
-            if (!user) throw new Error("User not found");
-            user.classes.push(newClass._id);
-            user.save();
-            newClass.students.map(student => {
-                UserModel.findById(student).then(user => {
-                    user.classes.push(newClass._id);
-                    user.save();
-                })
-            });
+            if (!user) throw new Error("User not found!");
+            return UserModel.updateOne({ // the teacher gets the created class assigned
+                _id: user,
+                type: 'Teacher'
+            }, {$addToSet: {classes: newClass}}).exec()
         })
-        .then(() => res.status(200).json(newClass))
+        .then((updatedUser) => {
+            if (updatedUser.ok !== 1) throw new Error("Class not added to teacher!");
+            return UserModel.updateMany({ // the students of the created class get the class assigned
+                _id: {$in: newClass.students},
+                type: 'Student'
+            }, {$addToSet: {classes: newClass}}).exec()
+        })
+        .then((updatedUsers) => {
+            if (updatedUsers.ok !== 1) throw new Error("Class not added to students!");
+            res.status(200).json(newClass)
+        })
         .catch(error => {
             const err = errorHandler.handle(error.message);
             res.status(err.code).json(err);
@@ -56,37 +67,7 @@ const getAllHomework = (req, res) => {
             res.status(err.code).json(err);
         })
 };
-
-function updateClass(myClass, req, res) {
-    return ClassModel.findOneAndUpdate({_id: myClass}, {
-        $set: {
-            title: req.body.title,
-            description: req.body.description,
-            students: req.body.students
-        }
-    }, {new: true}).then((updatedClass) => {
-        res.status(200).json(updatedClass);
-    });
-}
-
-function deleteClassForNonMember(myClass, req) {
-    return UserModel.updateMany({
-        _id: {$nin: req.body.students},
-        type: 'Student'
-    }, {$pull: {classes: myClass._id}}, {new: true}).exec().then(() => {
-        return myClass;
-    });
-}
-
-function addClassForNewMembers(myClass, req) {
-    return UserModel.updateMany({
-        _id: {$in: req.body.students},
-        type: 'Student'
-    }, {$addToSet: {classes: myClass}}, {new: true}).exec().then((b) => {
-        return myClass;
-    });
-}
-
+// here you update a class
 const update = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -97,57 +78,45 @@ const update = (req, res) => {
     }
 
     ClassModel.findById(req.params.id)
-        .then((myClass) => deleteClassForNonMember(myClass, req))
-        .then((myClass) => addClassForNewMembers(myClass, req))
-        .then((myClass) => updateClass(myClass, req, res))
-        .catch(error => {
-            res.status(404).json({
-                error: "Class not found",
-                message: "The class could not be found!"
+        .then((myClass) => { // here you delete the class for non members of the class
+            if (!myClass) throw new Error("Class not found!");
+            return UserModel.updateMany({
+                _id: {$nin: req.body.students},
+                type: 'Student'
+            }, {$pull: {classes: myClass._id}}).exec().then((updatedUsers) => {
+                if (updatedUsers.ok !== 1) throw new Error("Class not deleted from non members!");
+                return myClass;
             });
+        })
+        .then((myClass) => { // here you add the class for the members of the class
+            if (!myClass) throw new Error("Class not found!");
+            return UserModel.updateMany({
+                _id: {$in: req.body.students},
+                type: 'Student'
+            }, {$addToSet: {classes: myClass}}).exec().then((updatedUsers) => {
+                if (updatedUsers.ok !== 1) throw new Error("Class not added to new members!");
+                return myClass;
+            });
+        })
+        .then((myClass) => { // here you update the class itelf
+            if (!myClass) throw new Error("Class not found!");
+            return ClassModel.findOneAndUpdate({_id: myClass}, {
+                $set: {
+                    title: req.body.title,
+                    description: req.body.description,
+                    students: req.body.students
+                }
+            }, {new: true}).then((updatedClass) => {
+                if (!updatedClass) throw new Error("Class not updated!");
+                res.status(200).json(updatedClass);
+            });
+        })
+        .catch(error => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         });
 };
-
-function getHomework(myClass) {
-    return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => {
-        return {myClass: myClass, homework: homework};
-    });
-}
-
-function removeSubmission(classAndHomework) {
-    return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then(() => {
-        return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
-    });
-}
-
-function removeHomework(classAndHomework) {
-    return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then(() => {
-        return classAndHomework.myClass;
-    })
-}
-
-function getAllUsers(myClass) {
-    return UserModel.find({classes: myClass}).exec().then((users) => {
-        return {myClass: myClass, users: users};
-    });
-}
-
-function deleteClassOfUsers(myClassAndUsers) {
-    return UserModel.updateMany({_id: {$in: myClassAndUsers.users}}, {$pull: {classes: myClassAndUsers.myClass._id}}, {new: true}).exec().then(() => {
-        return myClassAndUsers.myClass;
-    });
-}
-
-function deleteClass(myClass) {
-    return ClassModel.remove({_id: myClass}).exec();
-}
-
-function getUpdatedClass(req, res) {
-    return UserModel.findOne({_id: req.userId}).populate('classes').exec().then((user) => {
-        res.status(200).json(user.classes);
-    })
-}
-
+// here you remove a class
 const remove = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -158,14 +127,53 @@ const remove = (req, res) => {
     }
 
     ClassModel.findById(req.params.id)
-        .then((myClass) => getHomework(myClass))
-        .then((classAndHomework) => removeSubmission(classAndHomework))
-        .then((classAndHomework) => removeHomework(classAndHomework))
-        .then((myClass) => getAllUsers(myClass))
-        .then((myClassAndUsers) => deleteClassOfUsers(myClassAndUsers))
-        .then((myClass) => deleteClass(myClass))
-        .then(() => getUpdatedClass(req, res));
-
+        .then((myClass) => { // here you get the corresponding homework for the class
+            if (!myClass) throw new Error("Class not found!");
+            return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => {
+                if (!homework) throw new Error("Homework not found!");
+                return {myClass: myClass, homework: homework};
+            });
+        })
+        .then((classAndHomework) => { // here the submissions for the class get deleted
+            if (!classAndHomework) throw new Error("Internal Server Error"); // rethink...
+            return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then((submission) => {
+                if (submission.ok !== 1) throw new Error("Submissions couldn't be deleted!");
+                return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
+            });
+        })
+        .then((classAndHomework) => { // here the homework for the class get deleted
+            if (!classAndHomework) throw new Error("Internal Server Error"); // rethink...
+            return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then((homework) => {
+                if (homework.ok !== 1) throw new Error("Homework couldn't be deleted!");
+                return classAndHomework.myClass;
+            })
+        })
+        .then((myClass) => { // here you get all the users for the class
+            if (!myClass) throw new Error("Class not found!");
+            return UserModel.find({classes: myClass}).exec().then((users) => {
+                if (!users) throw new Error("Users not found!");
+                return {myClass: myClass, users: users};
+            });
+        })
+        .then((myClassAndUsers) => { // here you delete the class for all users of the class
+            if (!myClassAndUsers) throw new Error("Internal Server Error"); // rethink...
+            return UserModel.updateMany({_id: {$in: myClassAndUsers.users}}, {$pull: {classes: myClassAndUsers.myClass._id}}).exec().then((updatedUsers) => {
+                if (updatedUsers.ok !== 1) throw new Error("Classes of users couldn't be deleted!");
+                return myClassAndUsers.myClass;
+            });
+        })
+        .then((myClass) => { // here you delete the class
+            if (!myClass) throw new Error("Class not found!");
+            return ClassModel.remove({_id: myClass}).exec()
+        })
+        .then((c) => { // here you find the updated classes of the user
+            if (c.ok !== 1) throw new Error("Class couldn't be deleted!");
+            return UserModel.findOne({_id: req.userId}).populate('classes').exec()
+        })
+        .then((user) => { // here you return the updated class
+                if (!user) throw new Error("User not found!");
+                res.status(200).json(user.classes);
+            })
 };
 
 // Returns an array of all classes a user is assigned to.
@@ -188,8 +196,8 @@ const findHomeworkOfClass = (req, res) => {
     let mySingleClass;
     ClassModel.findById(classId).populate('homework').exec()
         .then((singleClass) => {
-            mySingleClass = singleClass;
             if (!singleClass) throw new Error("Class not found");
+            mySingleClass = singleClass;
             return SubmissionModel.find({student: req.userId}).exec();
         })
         .then((submissions) => {
