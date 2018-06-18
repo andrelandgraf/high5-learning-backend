@@ -18,6 +18,10 @@ const handle = (message) => {
         return {code: 404, message: "Currently there are no schools in our system", error: message};
     }
 
+    if (message === "Homework not found") {
+        return {code: 404, message: "The homework you were looking for could not be found", error: message};
+    }
+
     if (message === "Class not found") {
         return {code: 404, message: "The class you were looking for could not be found.", error: message};
     }
