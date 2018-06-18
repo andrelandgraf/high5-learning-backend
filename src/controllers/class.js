@@ -9,10 +9,10 @@ const errorHandler = require('../error');
 // here you create a new class
 const create = (req, res) => {
 
-        if (req.userType !== "Teacher") {
-            let err = errorHandler.handle(error.message);
-            return res.status(err.code).json(err);
-        };
+    if (req.userType !== "Teacher") {
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    };
 
     const addClass = Object.assign(req.body);
     let newClass;
@@ -51,7 +51,10 @@ const create = (req, res) => {
 // Returns an array of all classes including their homework
 const getAllHomework = (req, res) => {
 
-    if (req.userType !== "Teacher") throw new Error("Not authorized");
+    if (req.userType !== "Teacher") {
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    };
 
     UserModel.findById(req.userId).populate('classes').select('classes').exec()
         .then((classes) => {
@@ -71,11 +74,9 @@ const getAllHomework = (req, res) => {
 const update = (req, res) => {
 
     if (req.userType !== "Teacher") {
-        return res.status(403).json({
-            error: "Access Denied",
-            message: "You are not allowed to update a class."
-        });
-    }
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    };
 
     ClassModel.findById(req.params.id)
         .then((myClass) => { // here you delete the class for non members of the class
@@ -120,11 +121,9 @@ const update = (req, res) => {
 const remove = (req, res) => {
 
     if (req.userType !== "Teacher") {
-        return res.status(403).json({
-            error: "Access Denied",
-            message: "You are not allowed to remove a class."
-        });
-    }
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    };
 
     ClassModel.findById(req.params.id)
         .then((myClass) => { // here you get the corresponding homework for the class
@@ -273,7 +272,12 @@ const findOpenHomework = (req, res) => {
 
 // Returns all students that are assigned to a specific class.
 const getStudentsOfClass = (req, res) => {
-    if (req.userType === 'Student') throw new Error('Not authorized');
+
+    if (req.userType !== "Teacher") {
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    };
+
     const classId = req.params.id;
     ClassModel.findById(classId).select('students').populate('students').exec()
         .then((listOfStudents) => {
