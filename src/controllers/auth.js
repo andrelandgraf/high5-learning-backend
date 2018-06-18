@@ -54,28 +54,8 @@ const login = (req, res) => {
 
 
         .catch((error) => {
-            if (error.message === "User Not Found") {
-                res.status(404).json(
-                    {
-                        error: 'Not Found',
-                        message: 'The user was not found.'
-                    }
-                )
-            } else if (error.message === "School Not Found") {
-                res.status(404).json(
-                    {
-                        error: 'SNot Found',
-                        message: 'The school was not found.'
-                    }
-                )
-            } else {
-                res.status(500).json(
-                    {
-                        error: 'Internal Error',
-                        message: 'An internal error occurred'
-                    }
-                )
-            }
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         });
 };
 
@@ -176,33 +156,9 @@ const register = (req, res) => {
                 res.status(200).json({token: token});
             })
 
-            .catch(err => {
-                if (err.message === "School not found") {
-                    return res.status(404).json({
-                        error: 'School not found',
-                        message: `School not found`
-                    });
-                } else if (err.message === "Internal server error") {
-                    return res.status(500).json({
-                        error: 'Internal server error',
-                        message: err.message
-                    })
-                } else if (err.message === "User exists") {
-                    return res.status(400).json({
-                        error: 'User exists',
-                        message: err.message
-                    })
-                } else if (err.message === `License Code not found`) {
-                    return res.status(404).json({
-                        error: 'Not Found',
-                        message: `License Code not found`
-                    });
-                } else {
-                    return res.status(400).json({
-                        error: 'Something went wrong!',
-                        message: err + err.message
-                    })
-                }
+            .catch(error => {
+                const err = errorHandler.handle(error.message);
+                res.status(err.code).json(err);
             });
     } else {
         // user is of type student : register student
@@ -238,29 +194,11 @@ const register = (req, res) => {
                 res.status(200).json({token: token});
             })
 
-            .catch(err => {
-                if (err.message === "School not found") {
-                    return res.status(404).json({
-                        error: 'School not found',
-                        message: `School not found`
-                    });
-                } else if (err.message === "Internal server error") {
-                    return res.status(500).json({
-                        error: 'Internal server error',
-                        message: err.message
-                    })
-                } else if (err.message === "User exists") {
-                    return res.status(400).json({
-                        error: 'User exists',
-                        message: err.message
-                    })
-                } else {
-                    return res.status(400).json({
-                        error: 'Something went wrong!',
-                        message: err.message
-                    })
+            .catch(error => {
+                    const err = errorHandler.handle(error.message);
+                    res.status(err.code).json(err);
                 }
-            });
+            );
     }
 };
 
@@ -268,18 +206,13 @@ const register = (req, res) => {
 const me = (req, res) => {
     UserModel.findById(req.body.userId).select('username').exec()
         .then(user => {
-
-            if (!user) return res.status(404).json({
-                error: 'Not Found',
-                message: `User not found`
-            });
-
+            if (!user) throw new Error("User not found");
             res.status(200).json(user)
         })
-        .catch(error => res.status(500).json({
-            error: 'Internal Server Error',
-            message: error.message
-        }));
+        .catch(error => {
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
+        });
 };
 
 const logout = (req, res) => {
@@ -331,17 +264,8 @@ const listMembership = (req, res) => {
             }
         })
         .catch((error) => {
-            if (error.message === "User Not Found") {
-                return res.status(404).json({
-                    error: 'Not Found',
-                    message: `User not found`
-                });
-            } else {
-                return res.status(500).json({
-                    error: 'Internal Server Error',
-                    message: error.message
-                });
-            }
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         });
 };
 
@@ -400,22 +324,8 @@ const createMembership = (req, res) => {
             }
         })
         .catch((error) => {
-            if (error.message === "User Not Found") {
-                return res.status(404).json({
-                    error: 'Not Found',
-                    message: `User not found`
-                });
-            } else if (error.message === "Class Not Found") {
-                return res.status(404).json({
-                    error: 'Not Found',
-                    message: `Class not found`
-                });
-            } else {
-                return res.status(500).json({
-                    error: 'Internal Server Error',
-                    message: error.message
-                })
-            }
+            const err = errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         });
 };
 

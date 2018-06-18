@@ -34,6 +34,14 @@ const handle = (message) => {
         return {code: 404, message: "The user you were looking for could not be found.", error: message};
     }
 
+    if (message === "User exists") {
+        return {code: 400, message: "The username already exists.", error: message};
+    }
+
+    if (message === "License Code not found") {
+        return {code: 404, message: "The license is not valid.", error: message};
+    }
+
     if (message === "No homework found") {
         return {code: 404, message: "For this class there is no homework.", error: message};
     }

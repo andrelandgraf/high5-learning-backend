@@ -125,7 +125,8 @@ const getStatisticsForHomework = (req, res) => {
             if (error.message === "Map Reduce could not find any statistics") {
                 return res.status(404).json({error: "Statistics not found"});
             } else {
-                errorHandler.handle(error.message);
+                const err = errorHandler.handle(error.message);
+                res.status(err.code).json(err);
             }
         });
 
@@ -185,7 +186,8 @@ const findSubmissionOfUserByHomework = (req, res) => {
             res.status(200).json(submission);
         })
         .catch(error => {
-            errorHandler.handle("Internal Error while search for submissions of a user");
+            const err =errorHandler.handle("Internal Error while search for submissions of a user");
+            res.status(err.code).json(err);
         })
 };
 
@@ -215,7 +217,8 @@ const getRankingOfSubmissions = (req, res) => {
             res.status(200).json(homeworkRanking);
         })
         .catch(error => {
-            rrorHandler.handle(error.message);
+            const err =errorHandler.handle(error.message);
+            res.status(err.code).json(err);
         })
 
 };
