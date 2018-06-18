@@ -122,40 +122,6 @@ const update = (req, res) => {
         });
 };
 
-function getHomework(myClass) {
-    return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => {
-        return {myClass: myClass, homework: homework};
-    });
-}
-
-function removeSubmission(classAndHomework) {
-    return SubmissionModel.remove({homework: classAndHomework.homework}).exec().then(() => {
-        return {myClass: classAndHomework.myClass, homework: classAndHomework.homework};
-    });
-}
-
-function removeHomework(classAndHomework) {
-    return HomeworkModel.remove({assignedClass: classAndHomework.myClass}).exec().then(() => {
-        return classAndHomework.myClass;
-    })
-}
-
-function getAllUsers(myClass) {
-    return UserModel.find({classes: myClass}).exec().then((users) => {
-        return {myClass: myClass, users: users};
-    });
-}
-
-function deleteClassOfUsers(myClassAndUsers) {
-    return UserModel.updateMany({_id: {$in: myClassAndUsers.users}}, {$pull: {classes: myClassAndUsers.myClass._id}}, {new: true}).exec().then(() => {
-        return myClassAndUsers.myClass;
-    });
-}
-
-function deleteClass(myClass) {
-    return ClassModel.remove({_id: myClass}).exec();
-}
-
 function getUpdatedClass(req, res) {
     return UserModel.findOne({_id: req.userId}).populate('classes').exec().then((user) => {
         if (!user) throw new Error("User not found!");
