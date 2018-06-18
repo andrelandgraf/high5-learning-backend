@@ -10,6 +10,10 @@ const handle = (message) => {
         return {code: 403, message: "You are not allowed to do this.", error: message};
     }
 
+    if (message === "Invalid password") {
+        return {code: 401, message: "Wrong password! Please try it again.", error: message};
+    }
+
     if (message === "School not found") {
         return {code: 404, message: "The school name could not be found", error: message};
     }

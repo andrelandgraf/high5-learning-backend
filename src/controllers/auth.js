@@ -40,7 +40,7 @@ const login = (req, res) => {
             if (!user) throw new Error("User Not Found");
             // check if the password is valid
             const isPasswordValid = bcrypt.compareSync(req.body.password, user.password);
-            if (!isPasswordValid) return res.status(401).send({token: null});
+            if (!isPasswordValid) throw new Error("Invalid password");
             currentUser = user;
             return SchoolModel.findOne({users: mongoose.Types.ObjectId(user._id)});
 
