@@ -79,9 +79,7 @@ const handle = (message) => {
     }
 
     if (message) {
-        return {code: 500, message: message, error: "Internal server error"};
-    } else {
-        return {code: 500, message: "The server failed to process your request.", error: "Internal server error"}
+        return {code: 500, message: "The server failed to process your request.", error: "Internal server error"};
     }
 
 };

@@ -95,10 +95,10 @@ const remove = (req, res) => {
         })
         .then((homeworkAndUpdatedClass) => { // then you remove the homework itself
             if (!homeworkAndUpdatedClass) throw new Error("Internal Server Error");
-            return HomeworkModel.remove({_id: homeworkAndUpdatedClass.homework}).exec()})
-        .then((homework) => {
+            return HomeworkModel.remove({_id: homeworkAndUpdatedClass.homework}).exec().then((homework) => {
                 if (homework.ok !== 1) throw new Error("Could not delete homework");
                 res.status(200).json(homeworkAndUpdatedClass.updatedClass); // you return the updated class
+            })
         }).catch(error => {
             const err = errorHandler.handle(error.message);
             res.status(err.code).json(err);
