@@ -1,14 +1,12 @@
 "use strict";
 
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
 const config = require('../config');
 const HomeworkModel = require('../models/homework');
 const ClassModel = require('../models/class');
 const SubmissionModel = require('../models/submission');
 const errorHandler = require('../error');
 
+// returns the newly created homework
 const create = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -18,14 +16,14 @@ const create = (req, res) => {
 
     let classId = req.params.id;
 
-    HomeworkModel.create(req.body)
+    HomeworkModel.create(req.body) // here you create the new homework
         .then((myHomework) => {
-        if (!myHomework) throw new Error("Homework couldn't be created!")
-        return ClassModel.updateOne(
+        if (!myHomework) throw new Error("Could not create homework");
+        return ClassModel.updateOne( // here you add the created homework to the corresponding class
             {_id: classId},
             {$addToSet: {homework: myHomework}}).exec().then((updatedClass) => {
-                if (updatedClass.ok !== 1) throw new Error("Homework not added to class!");
-                res.status(200).json(myHomework);
+                if (updatedClass.ok !== 1) throw new Error("Could not create homework");
+                res.status(200).json(myHomework); // you return the created homework
             })
         })
         .catch(error => {
@@ -34,6 +32,7 @@ const create = (req, res) => {
         })
 };
 
+// returns the updated homework
 const update = (req, res) => {
 
     if (req.userType !== "Teacher") {
@@ -42,9 +41,9 @@ const update = (req, res) => {
     };
 
     HomeworkModel.findById(req.params.id)
-        .then((homework) => {  // here you update the homework
-            if (!homework) throw new Error("Homework couldn't be found!")
-            return HomeworkModel.findOneAndUpdate({_id: homework}, {
+        .then((homework) => {  // here you first find the to be updated homework
+            if (!homework) throw new Error("Homework not found");
+            return HomeworkModel.findOneAndUpdate({_id: homework}, { // then you update the homework
                 $set: {
                     title: req.body.title,
                     exercises: req.body.exercises
@@ -52,8 +51,8 @@ const update = (req, res) => {
             }, {new: true})
         })
         .then((updatedHomework) => {
-            if (!updatedHomework) throw new Error("Homework couldn't be updated!")
-            res.status(200).json(updatedHomework);
+            if (!updatedHomework) throw new Error("Could not update homework");
+            res.status(200).json(updatedHomework); // you return the updated homework
         })
         .catch(error => {
             const err = errorHandler.handle(error.message);
@@ -62,13 +61,14 @@ const update = (req, res) => {
 
 };
 
+// returns a homework with its details
 const getHomeworkDetail = (req, res) => {
 
     let homeworkId = req.params.id;
 
     HomeworkModel.findById(homeworkId).exec().then((myHomework) => {
-        if (!myHomework) throw new Error("Homework not found!")
-        res.status(200).json(myHomework);
+        if (!myHomework) throw new Error("Homework not found");
+        res.status(200).json(myHomework); // you return the homework
     }).catch(error => {
         const err = errorHandler.handle(error.message);
         res.status(err.code).json(err);
@@ -76,45 +76,47 @@ const getHomeworkDetail = (req, res) => {
 
 };
 
+// returns the updated class without the to be deleted homework
 const remove = (req, res) => {
-    HomeworkModel.findById(req.params.id)
+    HomeworkModel.findById(req.params.id) // first you find the to be deleted homework
         .then((homework) => {
-            if (!homework) throw new Error("Homework not found!");
-            return SubmissionModel.remove({homework: homework}).exec().then((submission) => {
-                if (submission.ok !== 1) throw new Error("Submission couldn't be deleted!");
+            if (!homework) throw new Error("Homework not found");
+            return SubmissionModel.remove({homework: homework}).exec().then((submission) => { // then you remove all submissions of it
+                if (submission.ok !== 1) throw new Error("Could not delete submission");
                 return homework;
             });
         })
-        .then((homework) => {
-            if (!homework) throw new Error("Homework not found!");
+        .then((homework) => { // then you delete the homework from the corresponding class
+            if (!homework) throw new Error("Internal Server Error");
             return ClassModel.findOneAndUpdate({homework: homework}, {$pull: {homework: homework._id}}, {new: true}).populate('homework').exec().then((updatedClass) => {
-                if (!updatedClass) throw new Error("Homework couldn't be deleted from class!");
+                if (!updatedClass) throw new Error("Could not delete homework");
                 return {updatedClass: updatedClass, homework: homework};
             });
         })
-        .then((homeworkAndUpdatedClass) => {
-            if (!homeworkAndUpdatedClass) throw new Error("Homework and updated class not found");
-            return HomeworkModel.remove({_id: homeworkAndUpdatedClass.homework}).exec().then((homework) => {
-                if (homework.ok !== 1) throw new Error("Homework couldn't be deleted!");
-                res.status(200).json(homeworkAndUpdatedClass.updatedClass);
-            })
+        .then((homeworkAndUpdatedClass) => { // then you remove the homework itself
+            if (!homeworkAndUpdatedClass) throw new Error("Internal Server Error");
+            return HomeworkModel.remove({_id: homeworkAndUpdatedClass.homework}).exec()})
+        .then((homework) => {
+                if (homework.ok !== 1) throw new Error("Could not delete homework");
+                res.status(200).json(homeworkAndUpdatedClass.updatedClass); // you return the updated class
         }).catch(error => {
             const err = errorHandler.handle(error.message);
             res.status(err.code).json(err);
         })
 };
 
+// returns the class with the updated homework with changed visibility status
 const changeVisibility = (req, res) => {
-    HomeworkModel.findById(req.params.id)
+    HomeworkModel.findById(req.params.id) // first you find the homework
         .then((homework) => {
             if (!homework) throw new Error("Homework not found");
-            return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: req.body.desiredVisibilityStatus}}, {new: true}).exec()
-        }).then((updatedHomework) => {
-            if (!updatedHomework) throw new Error("Homework couldn't be updated");
+            return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: req.body.desiredVisibilityStatus}}, {new: true}).exec() // then you change the visibility status
+        }).then((updatedHomework) => { // then you search for the class of the homework
+            if (!updatedHomework) throw new Error("Could not update homework");
             return ClassModel.findOne({homework: updatedHomework}).populate('homework').exec()})
         .then((classes) => {
-            if (!classes) throw new Error("Class couldn't be found");
-            res.status(200).json(classes);
+            if (!classes) throw new Error("Class not found");
+            res.status(200).json(classes); // then you return the updated class
         })
         .catch(error => {
             const err = errorHandler.handle(error.message);

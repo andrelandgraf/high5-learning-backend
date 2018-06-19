@@ -18,6 +18,10 @@ const handle = (message) => {
         return {code: 404, message: "The school name could not be found", error: message};
     }
 
+    if (message === "Submission not found") {
+        return {code: 404, message: "The submission could not be found", error: message};
+    }
+
     if (message === "Schools not found") {
         return {code: 404, message: "Currently there are no schools in our system", error: message};
     }
@@ -28,10 +32,6 @@ const handle = (message) => {
 
     if (message === "Class not found") {
         return {code: 404, message: "The class you were looking for could not be found.", error: message};
-    }
-
-    if (message === "Classes not found") {
-        return {code: 404, message: "The classes you were looking for could not be found.", error: message};
     }
 
     if (message === "User not found") {
@@ -48,6 +48,34 @@ const handle = (message) => {
 
     if (message === "No homework found") {
         return {code: 404, message: "For this class there is no homework.", error: message};
+    }
+
+    if (message === "Could not create homework") {
+        return {code: 500, message: "The homework couldn't be created.", error: message};
+    }
+
+    if (message === "Could not create class") {
+        return {code: 500, message: "The class couldn't be created.", error: message};
+    }
+
+    if (message === "Could not update class") {
+        return {code: 500, message: "The class couldn't be updated.", error: message};
+    }
+
+    if (message === "Could not update homework") {
+        return {code: 500, message: "The homework couldn't be updated.", error: message};
+    }
+
+    if (message === "Could not delete submission") {
+        return {code: 500, message: "The submission couldn't be deleted.", error: message};
+    }
+
+    if (message === "Could not delete class") {
+        return {code: 500, message: "The class couldn't be deleted.", error: message};
+    }
+
+    if (message === "Could not delete homework") {
+        return {code: 500, message: "The homework couldn't be deleted.", error: message};
     }
 
     if (message) {
