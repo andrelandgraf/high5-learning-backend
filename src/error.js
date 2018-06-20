@@ -1,5 +1,10 @@
 "use strict";
 
+/**
+ * message is the error message
+ * @param message
+ * @returns {*}
+ */
 const handle = (message) => {
 
     if (message === 'No token provided in the request' || message === 'Failed to authenticate token.') {

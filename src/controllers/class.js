@@ -12,7 +12,7 @@ const create = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     const addClass = Object.assign(req.body);
     let newClass;
@@ -54,7 +54,7 @@ const getAllHomework = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     UserModel.findById(req.userId).populate('classes').select('classes').exec()
         .then((classes) => { // first you search for the classes of the teacher
@@ -76,7 +76,7 @@ const update = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     ClassModel.findById(req.params.id)
         .then((myClass) => { // first you find the to be updated class
@@ -124,7 +124,7 @@ const remove = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     ClassModel.findById(req.params.id) // first you find the to be removed class
         .then((myClass) => {
@@ -280,7 +280,7 @@ const getStudentsOfClass = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     const classId = req.params.id;
     ClassModel.findById(classId).select('students').populate('students').exec()
