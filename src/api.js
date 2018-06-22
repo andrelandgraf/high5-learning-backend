@@ -47,5 +47,4 @@ api.use('/submission', submission);
 api.use('/school', school);
 
 
-
 module.exports = api;
