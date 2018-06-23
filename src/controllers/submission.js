@@ -191,6 +191,7 @@ const findSubmissionOfUserByHomework = (req, res) => {
         })
 };
 
+// returns a key-value pair of homeworkId, rankingPosition
 const getRankingOfSubmissions = (req, res) => {
 
     const classId = req.params.id;
@@ -199,18 +200,18 @@ const getRankingOfSubmissions = (req, res) => {
 
     let homeworkOfClass;
 
-    ClassModel.findById(classId, 'homework').populate('homework')
+    ClassModel.findById(classId, 'homework').populate('homework') // get all homework within a class
         .then(result => {
             if(!result) throw new Error("Homework not found");
             homeworkOfClass = result.homework.map(val => val._id);
-            return SubmissionModel.find({homework: homeworkOfClass}).sort({homework: 'asc', createdAt: 'asc'});
+            return SubmissionModel.find({homework: homeworkOfClass}).sort({homework: 'asc', createdAt: 'asc'}); // get all submissions for all homework of this class
         })
         .then(submissions => {
             homeworkOfClass.map(homeworkId => {
-                const submissionsOfHw = submissions.filter(submission => submission.homework.toString() === homeworkId.toString());
+                const submissionsOfHw = submissions.filter(submission => submission.homework.toString() === homeworkId.toString()); // get all submissions of this homework
                 submissionsOfHw.map((submission, rank) => {
                     if (submission.student.toString() === userId.toString()) {
-                        homeworkRanking[submission.homework] = rank + 1;
+                        homeworkRanking[submission.homework] = rank + 1; // create ranking with the index of the submission-Array (as this is ordered by creation date) +1 as it's zero-based
                     }
                 })
             });
