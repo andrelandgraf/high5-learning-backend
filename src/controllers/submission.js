@@ -168,10 +168,12 @@ const create = (req, res) => {
     const addSubmission = req.body;
     SubmissionModel.create(addSubmission)
         .then((submission) => {
+            if(!submission) throw new Error("Creation of submission not possible");
             res.status(200).json(submission);
         })
         .catch(error => {
-                errorHandler.handle("Could not create Submission");
+                const err = errorHandler.handle(error.message);
+                res.status(err.code).json(err);
             }
         );
 };
@@ -183,10 +185,11 @@ const findSubmissionOfUserByHomework = (req, res) => {
     SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
         .then(submission => {
+            if(!submission) throw new Error("Internal Error while search for submissions of a user");
             res.status(200).json(submission);
         })
         .catch(error => {
-            const err =errorHandler.handle("Internal Error while search for submissions of a user");
+            const err = errorHandler.handle(error.message);
             res.status(err.code).json(err);
         })
 };

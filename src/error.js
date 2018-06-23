@@ -75,6 +75,10 @@ const handle = (message) => {
         return {code: 500, message: "The submission couldn't be deleted.", error: message};
     }
 
+    if (message === "Creation of submission not possible") {
+        return {code: 500, message: "The submission couldn't be created.", error: message};
+    }
+
     if (message === "Could not delete class") {
         return {code: 500, message: "The class couldn't be deleted.", error: message};
     }
