@@ -256,7 +256,7 @@ const findOpenHomework = (req, res) => {
                     openHw[val.assignedClass] = 0;
                 }
                 openHw[val.assignedClass] += allHw.reduce((sum, currVal) => {
-                    return (val._id === currVal._id && currVal.visible) ? sum + 1 : sum + 0;
+                    return (val._id === currVal._id) ? sum + 1 : sum + 0;
                 }, 0);
             });
             if (submissions.length > 0) {
