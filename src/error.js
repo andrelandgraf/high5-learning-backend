@@ -51,10 +51,6 @@ const handle = (message) => {
         return {code: 404, message: "The license is not valid.", error: message};
     }
 
-    if (message === "No homework found") {
-        return {code: 404, message: "For this class there is no homework.", error: message};
-    }
-
     if (message === "Could not create homework") {
         return {code: 500, message: "The homework couldn't be created.", error: message};
     }

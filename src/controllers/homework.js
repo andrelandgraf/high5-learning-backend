@@ -22,7 +22,7 @@ const create = (req, res) => {
         return ClassModel.updateOne( // here you add the created homework to the corresponding class
             {_id: classId},
             {$addToSet: {homework: myHomework}}).exec().then((updatedClass) => {
-                if (updatedClass.ok !== 1) throw new Error("Could not create homework");
+                if (updatedClass.ok !== 1) throw new Error("Could not update class");
                 res.status(200).json(myHomework); // you return the created homework
             })
         })
@@ -40,7 +40,7 @@ const update = (req, res) => {
         return res.status(err.code).json(err);
     };
 
-    HomeworkModel.findById(req.params.id)
+    HomeworkModel.findById(req.params.id).exec()
         .then((homework) => {  // here you first find the to be updated homework
             if (!homework) throw new Error("Homework not found");
             return HomeworkModel.findOneAndUpdate({_id: homework}, { // then you update the homework
@@ -48,7 +48,7 @@ const update = (req, res) => {
                     title: req.body.title,
                     exercises: req.body.exercises
                 }
-            }, {new: true})
+            }, {new: true}).exec()
         })
         .then((updatedHomework) => {
             if (!updatedHomework) throw new Error("Could not update homework");
@@ -78,7 +78,7 @@ const getHomeworkDetail = (req, res) => {
 
 // returns the updated class without the to be deleted homework
 const remove = (req, res) => {
-    HomeworkModel.findById(req.params.id) // first you find the to be deleted homework
+    HomeworkModel.findById(req.params.id).exec() // first you find the to be deleted homework
         .then((homework) => {
             if (!homework) throw new Error("Homework not found");
             return SubmissionModel.remove({homework: homework}).exec().then((submission) => { // then you remove all submissions of it
@@ -107,7 +107,7 @@ const remove = (req, res) => {
 
 // returns the class with the updated homework with changed visibility status
 const changeVisibility = (req, res) => {
-    HomeworkModel.findById(req.params.id) // first you find the homework
+    HomeworkModel.findById(req.params.id).exec() // first you find the homework
         .then((homework) => {
             if (!homework) throw new Error("Homework not found");
             return HomeworkModel.findOneAndUpdate({_id: homework}, {$set: {visible: req.body.desiredVisibilityStatus}}, {new: true}).exec() // then you change the visibility status

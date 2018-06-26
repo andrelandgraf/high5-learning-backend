@@ -59,7 +59,7 @@ const getAllHomework = (req, res) => {
     UserModel.findById(req.userId).populate('classes').select('classes').exec()
         .then((classes) => { // first you search for the classes of the teacher
             if(!classes) throw new Error('User not found');
-            return ClassModel.find({_id: classes.classes}).select('homework _id title').populate('homework') // then you search for all homework inside the classes
+            return ClassModel.find({_id: classes.classes}).select('homework _id title').populate('homework').exec() // then you search for all homework inside the classes
         })
         .then((homework) => {
             if(!homework) throw new Error('Class not found');
@@ -78,7 +78,7 @@ const update = (req, res) => {
         return res.status(err.code).json(err);
     }
 
-    ClassModel.findById(req.params.id)
+    ClassModel.findById(req.params.id).exec()
         .then((myClass) => { // first you find the to be updated class
             if (!myClass) throw new Error("Class not found");
             return UserModel.updateMany({ // then you remove the class from all users who are not members of the updated class
@@ -99,7 +99,7 @@ const update = (req, res) => {
                 return myClass;
             });
         })
-        .then((myClass) => { // here you update the class itelf
+        .then((myClass) => { // here you update the class itself
             if (!myClass) throw new Error("Class not found");
             return ClassModel.findOneAndUpdate({_id: myClass}, {
                 $set: {
@@ -126,7 +126,7 @@ const remove = (req, res) => {
         return res.status(err.code).json(err);
     }
 
-    ClassModel.findById(req.params.id) // first you find the to be removed class
+    ClassModel.findById(req.params.id).exec() // first you find the to be removed class
         .then((myClass) => {
             if (!myClass) throw new Error("Class not found");
             return HomeworkModel.find({assignedClass: myClass}).exec().then((homework) => { // here you get the corresponding homework for the class
@@ -226,7 +226,7 @@ const findOpenHomework = (req, res) => {
 
     let openHw = {};
     let allHw = [];
-    UserModel.findById(req.userId).populate('classes')
+    UserModel.findById(req.userId).populate('classes').exec()
         .then(user => {
             if (!user) throw new Error("User not found");
             return user.classes;
@@ -240,14 +240,14 @@ const findOpenHomework = (req, res) => {
                         assignedClass: val._id
                     };
                 })
-            })
+            , visible: 'true'}).exec()
 
         })
         .then(homework => {
             if (!homework) throw new Error("Homework not found");
             if (homework.length === 0) return [];
             allHw = homework;
-            return SubmissionModel.find({student: req.userId}, 'homework')
+            return SubmissionModel.find({homework: {$in: homework}}, 'homework').exec()
         })
         .then(submissions => {
             if (!submissions) throw new Error("Submission not found");
