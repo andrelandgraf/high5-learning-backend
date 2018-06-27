@@ -12,7 +12,7 @@ const create = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     let classId = req.params.id;
 
@@ -38,7 +38,7 @@ const update = (req, res) => {
     if (req.userType !== "Teacher") {
         let err = errorHandler.handle("Not authorized");
         return res.status(err.code).json(err);
-    };
+    }
 
     HomeworkModel.findById(req.params.id).exec()
         .then((homework) => {  // here you first find the to be updated homework
@@ -78,6 +78,12 @@ const getHomeworkDetail = (req, res) => {
 
 // returns the updated class without the to be deleted homework
 const remove = (req, res) => {
+
+    if (req.userType !== "Teacher") {
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    }
+
     HomeworkModel.findById(req.params.id).exec() // first you find the to be deleted homework
         .then((homework) => {
             if (!homework) throw new Error("Homework not found");
@@ -107,6 +113,12 @@ const remove = (req, res) => {
 
 // returns the class with the updated homework with changed visibility status
 const changeVisibility = (req, res) => {
+
+    if (req.userType !== "Teacher") {
+        let err = errorHandler.handle("Not authorized");
+        return res.status(err.code).json(err);
+    }
+
     HomeworkModel.findById(req.params.id).exec() // first you find the homework
         .then((homework) => {
             if (!homework) throw new Error("Homework not found");
