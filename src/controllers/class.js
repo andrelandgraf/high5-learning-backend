@@ -247,7 +247,7 @@ const findOpenHomework = (req, res) => {
             if (!homework) throw new Error("Homework not found");
             if (homework.length === 0) return [];
             allHw = homework;
-            return SubmissionModel.find({homework: {$in: homework}}, 'homework').exec()
+            return SubmissionModel.find({homework: {$in: homework}, student: req.userId}, 'homework').exec()
         })
         .then(submissions => {
             if (!submissions) throw new Error("Submission not found");
