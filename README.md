@@ -55,7 +55,7 @@ license code: DisneyHighSchoolLicenseCode2018
 
 **Use following teacher account to test teacher's functionalities**
 ```
-user account email: dagoberg.duck@disney.com
+user account email: dagobert.duck@disney.com
 password: bla
 ```
 
