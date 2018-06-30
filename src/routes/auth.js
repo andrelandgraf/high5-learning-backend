@@ -20,13 +20,6 @@ router.post('/register', AuthController.register);
 // return all user information (user id via auth)
 router.get('/me', middleware.checkAuthentication , AuthController.me);
 
-// check if user (user id via auth) is member of class with class id :id
-router.get('/member/:id', middleware.checkAuthentication , AuthController.listMembership);
-
-// add membership for user (user id via auth)
-// !important class id via body is compulsory
-router.post('/member/', middleware.checkAuthentication , AuthController.createMembership);
-
 // delete token of logged in user
 router.get('/logout', AuthController.logout);
 
