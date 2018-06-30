@@ -2,9 +2,13 @@
 
 const mongoose = require('mongoose');
 
-//definition of the submission schema
-
-//submission Schema with an array of indexes of the picked answer of each exercise of an homework and the assigned Homework
+/**
+ * Submission Schema
+ * exercises: array of picked answers for each exercise of the homework, picked answer is the index of the answers array
+ * homework: composition, homework (parent) for the submission (child)
+ * student: the student who has submitted this Submission
+ * @type {module:mongoose.Schema}
+ */
 const SubmissionSchema = new mongoose.Schema({
     exercises:  {
         type: [Number],

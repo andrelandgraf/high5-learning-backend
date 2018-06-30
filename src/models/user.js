@@ -3,12 +3,15 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the user schema
-// a user has a name and password and a type(set via registration)
-// classes is an array of foreign keys to the schema class
-// if user is a teacher: classes are the classes the teacher created  -> can access, edit the class
-// if user is a student: classes are the classes the student has signed up for -> can access the class
-// TODO why is password unquie, aka. we might neeed unique at username && also dropDups = true at username
+/**
+ * the user schema
+ * a user has a name and password and a type(set via registration)
+ * type: either student or teacher
+ * classes: an array of foreign keys to the schema class
+ * if user is a teacher: classes are the classes the teacher created  -> can access and edit the class
+ * if user is a student: classes are the classes the student has signed up for -> can access the class
+ * @type {module:mongoose.Schema}
+ */
 const UserSchema  = new Schema({
     username: {
         type: String,

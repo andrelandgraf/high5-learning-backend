@@ -3,9 +3,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the class schema
-// This schema will be used read-only by the backend
-// The only way to insert data is directly into the mongodb
+/**
+ * the class schema containing
+ * title: the title of the class (class name)
+ * description: a description of this class (aims, learning horizon, etc.)
+ * students: a list of user ids (students) that are members of this class
+ * homework: a list of homework, all homeworks that have been inserted for this class by the teacher
+ * @type {module:mongoose.Schema}
+ */
 const ClassSchema  = new Schema({
     title: {
         type: String,

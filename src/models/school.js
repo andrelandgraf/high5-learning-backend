@@ -3,10 +3,13 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the school schema
-// This schema will be used read-only by the backend
-// The only way to insert data is directly into the mongodb
-// We have to store the licence codes of the schools to check it against registrations of teachers
+/**
+ * Define the class schema
+ * This schema will be used "read-only" by the backend
+ * It is possible to add new students to a school
+ * But the only way to insert new schools and update school name and license code is directly into the mongodb
+ * @type {module:mongoose.Schema}
+ */
 const SchoolSchema  = new Schema({
     name: {
         type: String,

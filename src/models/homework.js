@@ -5,7 +5,18 @@ const mongoose = require('mongoose');
 //definition of the homework schema
 
 
-//homework Schema with title of homework, corresponding exercises and assignedClass
+/**
+ * homework Schema with
+ * title of homework,
+ * corresponding exercises:
+ *      id: index of the exercise within the exercise list !starting at one!
+ *      question: String, the question to be answered in this exercise
+ *      answers: array of the four possible multiple choice answer possibilities
+ *      right solution: index of the answer in the answers array that is the right answer !starting at zero!
+ * assignedClass: every homework is child of a class, composition between the two models
+ * visible: is this homework visible for the students of the class yet?
+ * @type {module:mongoose.Schema}
+ */
 const HomeworkSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -47,29 +58,3 @@ HomeworkSchema.set('timestamps', true);
 
 //Export of the homework model
 module.exports = mongoose.model('Homework', HomeworkSchema);
-
-
-// sample homework json
-/*
-{
-    title: "Algebra 1",
-        exercises:
-    [{question: "What is 1+1 ?",
-        answers: ["2", "4", "6", "19"]},
-
-    {question: "What is 4*4 ?",
-        answers: ["56", "16", "56", "88"]},
-
-    {question: "What is 4*4 ?",
-        answers: ["56", "16", "56", "88"]},
-
-        {question: "What is 2/4 ?",
-            answers: ["0.5", "122", "0.5", "856"]},
-
-        {question: "What is 400*333 ?",
-            answers: ["3434", "343", "33", "85"]}
-],
-    assignedClass: 5b0abf6cfda2f811b0dda0ef
-}
-
-*/
