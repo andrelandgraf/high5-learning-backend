@@ -10,7 +10,12 @@ const ClassModel = require('../models/class');
 const errorHandler = require('../error');
 
 
-// creates a token with the id, the username and the user type (e.g. student or teacher)
+/**
+ * function createToken creates a token with the id, the username and the user type (e.g. student or teacher)
+ * @param user
+ * @param schoolname
+ * @returns {*}
+ */
 function createToken(user, schoolname) {
     return jwt.sign({
         id: user._id,
@@ -18,10 +23,17 @@ function createToken(user, schoolname) {
         type: user.type,
         schoolname: schoolname
     }, config.JwtSecret, {
-        expiresIn: 86400 // expires in 24 hours
+        // expires in 24 hours
+        expiresIn: 86400
     });
 }
 
+/**
+ * function login: check login data, return token if everything is fine
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 const login = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
         error: 'Bad Request',
@@ -35,6 +47,8 @@ const login = (req, res) => {
 
     let currentUser;
 
+    // chaining through the promises that are needed in order to check the login data provided via req
+    // finally return token if login data is valid
     UserModel.findOne({username: req.body.username}).exec()
         .then(user => {
             if (!user) throw new Error("User Not Found");
@@ -59,6 +73,12 @@ const login = (req, res) => {
         });
 };
 
+/**
+ * function changePassword: change the password of the logged in user
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 const changePassword = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'password')) return res.status(400).json({
         error: 'Bad Request',
@@ -74,6 +94,7 @@ const changePassword = (req, res) => {
 };
 
 /**
+ * function register: register new user after checking the registration data
  * workflow:
  * 1) if user name is already taken -> error from db
  * 2) check if user is teacher, if so, look for school license code
@@ -202,7 +223,11 @@ const register = (req, res) => {
     }
 };
 
-
+/**
+ * function me: return all user information for the logged in user
+ * @param req
+ * @param res
+ */
 const me = (req, res) => {
     UserModel.findById(req.body.userId).select('username').exec()
         .then(user => {
@@ -215,10 +240,23 @@ const me = (req, res) => {
         });
 };
 
+/**
+ * function logout: delete current auth token
+ * @param req
+ * @param res
+ */
 const logout = (req, res) => {
     res.status(200).send({token: null});
 };
 
+/**
+ * function listMembership:
+ * return either classes: -1 if user is not member of class with id params:id
+ * or return classes: userClasses if user is member of class  with id params:id
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 const listMembership = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
         return res.status(400).json({
@@ -240,6 +278,7 @@ const listMembership = (req, res) => {
 
             if (!user) throw new Error("User Not Found");
 
+            // check all classes of the user for the classId class
             let isClassOfUser = false;
             user.classes.forEach(function (c) {
                 if (String(c) === classId) {
@@ -248,6 +287,7 @@ const listMembership = (req, res) => {
             });
 
             if (isClassOfUser === true) {
+                // the user is a member of the class classId
                 return res.status(200).json(
                     {
                         user: user.username,
@@ -255,6 +295,7 @@ const listMembership = (req, res) => {
                     }
                 );
             } else {
+                // the user is not member of the class classId
                 return res.status(200).json(
                     {
                         user: user.username,
@@ -269,6 +310,12 @@ const listMembership = (req, res) => {
         });
 };
 
+/**
+ * function createMembership: add user to class if he is not a member yet
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 const createMembership = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.body, 'class'))
         return res.status(400).json({
@@ -287,6 +334,7 @@ const createMembership = (req, res) => {
 
     let myUser;
 
+    // find logged in user and return the classes list of the use and its username
     UserModel.findById(userId).select('username classes').exec()
         .then((user) => {
             if (!user) throw new Error("User Not Found");

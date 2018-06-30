@@ -3,6 +3,12 @@
 const SchoolModel = require('../models/school');
 const errorHandler = require('../error');
 
+/**
+ * function getStudentsOfSchool
+ * return a list of all students (user) of this school
+ * @param req
+ * @param res
+ */
 const getStudentsOfSchool = (req, res) => {
     SchoolModel.findOne({name: req.schoolname}).populate({path: 'users', model: 'User'}).then((school) => {
         if (!school) throw new Error("School not found");
@@ -16,8 +22,14 @@ const getStudentsOfSchool = (req, res) => {
 
 };
 
-// author: Andre Landgraf
-// return ALL Schools for Register/Login
+/**
+ * function getAll:
+ * !important no authentification needed here
+ * ! be careful with sensible data
+ * return ALL Schools for Register/Login
+ * @param req
+ * @param res
+ */
 const getAll = (req, res) => {
     SchoolModel.find().then((schools) => {
         if (!schools) throw new Error("Schools not found");

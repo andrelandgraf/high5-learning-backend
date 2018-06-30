@@ -8,7 +8,15 @@ const HomeworkModel = require('../models/homework');
 const SubmissionModel = require('../models/submission');
 const ClassModel = require('../models/class');
 
-// this will return the statistics
+/**
+ * function getStatisticsForHomework:
+ * returns the statistics of this homework for the teacher
+ * uses map reduce to aggregate the exercises statistics
+ * uses aggregate to aggregate the user submission times
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 const getStatisticsForHomework = (req, res) => {
     if (!Object.prototype.hasOwnProperty.call(req.params, 'id'))
         return res.status(400).json({
@@ -20,6 +28,8 @@ const getStatisticsForHomework = (req, res) => {
     let myStatistics;
     let mySubmissions;
     let map = {};
+
+    // chaining through all needed data
     HomeworkModel.findById(homeworkId).exec()
         .then((homework) => {
 
@@ -133,6 +143,14 @@ const getStatisticsForHomework = (req, res) => {
 };
 
 // See: http://mongoosejs.com/docs/api.html#mongoose_Mongoose-Model
+/**
+ * called by getStatisticsForHomework
+ * map reduce of the exercise statistics
+ * map: each exercise with key: index of exercise and value: pickedAnswer of Student
+ * reduce: reduce for each key, count +1 for each pickedAnswer to the answers array
+ * @param homework
+ * @returns {Promise|Promise<any>|*|PromiseLike<T>|Promise<T>}
+ */
 function mapReduceStatistic(homework) {
     let mapReduceObject = {};
     mapReduceObject.map = function () {
@@ -163,12 +181,18 @@ function mapReduceStatistic(homework) {
     });
 }
 
-// body has to contain array of exercises, id student and id of the homework
+/**
+ * ! req body has to contain array of exercises, id student and id of the homework
+ * function create:
+ * insert a new submission
+ * @param req
+ * @param res
+ */
 const create = (req, res) => {
     const addSubmission = req.body;
     SubmissionModel.create(addSubmission)
         .then((submission) => {
-            if(!submission) throw new Error("Creation of submission not possible");
+            if (!submission) throw new Error("Creation of submission not possible");
             res.status(200).json(submission);
         })
         .catch(error => {
@@ -178,14 +202,19 @@ const create = (req, res) => {
         );
 };
 
-
+/**
+ * function findSubmissionOfUserByHomework:
+ * return single submission for the current user (student) to the homework
+ * @param req
+ * @param res
+ */
 const findSubmissionOfUserByHomework = (req, res) => {
     const userId = req.userId;
     const homeworkId = req.params.id;
     SubmissionModel.find({homework: homeworkId, student: userId})
         .exec()
         .then(submission => {
-            if(!submission) throw new Error("Internal Error while search for submissions of a user");
+            if (!submission) throw new Error("Internal Error while search for submissions of a user");
             res.status(200).json(submission);
         })
         .catch(error => {
@@ -194,7 +223,13 @@ const findSubmissionOfUserByHomework = (req, res) => {
         })
 };
 
-// returns a key-value pair of homeworkId, rankingPosition
+/**
+ * function getRankingOfSubmissions:
+ * order submissions of all students of this homework by timestamp
+ * returns a key-value pair of homeworkId, rankingPosition
+ * @param req
+ * @param res
+ */
 const getRankingOfSubmissions = (req, res) => {
 
     const classId = req.params.id;
@@ -202,26 +237,31 @@ const getRankingOfSubmissions = (req, res) => {
     let homeworkRanking = {};
 
     let homeworkOfClass;
-
-    ClassModel.findById(classId, 'homework').populate('homework') // get all homework within a class
+    
+    // get all homework within a class
+    ClassModel.findById(classId, 'homework').populate('homework')
         .then(result => {
-            if(!result) throw new Error("Homework not found");
+            if (!result) throw new Error("Homework not found");
             homeworkOfClass = result.homework.map(val => val._id);
-            return SubmissionModel.find({homework: homeworkOfClass}).sort({homework: 'asc', createdAt: 'asc'}); // get all submissions for all homework of this class
+            // get all submissions for all homework of this class
+            return SubmissionModel.find({homework: homeworkOfClass}).sort({homework: 'asc', createdAt: 'asc'});
         })
         .then(submissions => {
             homeworkOfClass.map(homeworkId => {
-                const submissionsOfHw = submissions.filter(submission => submission.homework.toString() === homeworkId.toString()); // get all submissions of this homework
+                // get all submissions of this homework
+                const submissionsOfHw = submissions.filter(submission => submission.homework.toString() === homeworkId.toString());
                 submissionsOfHw.map((submission, rank) => {
                     if (submission.student.toString() === userId.toString()) {
-                        homeworkRanking[submission.homework] = rank + 1; // create ranking with the index of the submission-Array (as this is ordered by creation date) +1 as it's zero-based
+                        // create ranking with the index of the submission-Array
+                        // (as this is ordered by creation date) +1 as it's zero-based
+                        homeworkRanking[submission.homework] = rank + 1;
                     }
                 })
             });
             res.status(200).json(homeworkRanking);
         })
         .catch(error => {
-            const err =errorHandler.handle(error.message);
+            const err = errorHandler.handle(error.message);
             res.status(err.code).json(err);
         })
 
