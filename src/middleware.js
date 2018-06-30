@@ -50,8 +50,6 @@ const checkAuthentication = (req, res, next) => {
         req.schoolname = decoded.schoolname;
         next();
     });
-
-
 };
 
 module.exports = {

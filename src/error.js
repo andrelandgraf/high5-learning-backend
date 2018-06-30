@@ -1,7 +1,9 @@
 "use strict";
 
 /**
- * message is the error message
+ * use this function in the controllers to reduce error handling code inside the controllers
+ * parameter: message is the error message (string)
+ * return value: json response to return to the backend user in case of the error specified by message
  * @param message
  * @returns {*}
  */

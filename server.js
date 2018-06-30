@@ -14,7 +14,7 @@ api.set('port', config.port);
 const server = http.createServer(api);
 
 
-//Connect to the MongoDB database; then start the server
+// Connect to the MongoDB database; then start the server
 mongoose
     .connect(config.mongoURI)
     .then(() => server.listen(config.port))
@@ -22,7 +22,6 @@ mongoose
         console.log('Error connecting to the database', err.message);
         process.exit(err.statusCode);
     });
-
 
 server.on('listening', () => {
     console.log(`API is running in port ${config.port}`);
