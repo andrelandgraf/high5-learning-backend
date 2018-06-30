@@ -9,6 +9,10 @@ Web Application Engineering (IN2087)
 You can find the corresponding frontend here:
 https://github.com/tum-aweink/high5-learning-frontend
 
+## Sending Feedback
+
+We are always open to [your feedback](https://github.com/andrelandgraf/high5-learning-backend/issues).
+
 ## Prerequisites
 
 **Install node dependencies and MongoDB**
